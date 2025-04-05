@@ -17,10 +17,12 @@ struct PlanItem {
     QString plan_name{};
 };
 
+QString plan_json_file_path = "./plan.json";
+QJsonObject usr_plan_obj;
 
 // 加载已经存在的计划
 void LoadPlan() {
-    QFile file("./plan.json");
+    QFile file(plan_json_file_path);
     if (file.exists()) {
 
         QByteArray data = file.readAll();
@@ -37,22 +39,27 @@ void LoadPlan() {
         }
 
         // plans 中是json对象
-        QJsonObject paln_json = doc.object();
+        usr_plan_obj = doc.object();
 
-
-    }
-    // 如果文件不存在
-    else {
-        // 创建默认json文件
-        // 或者什么也不做
     }
 }
 
-// 退出程序或者其他操作时报错现在的计划
+// 退出程序或者其他操作时保存现有的计划
 void SavePlan() {
+    QFile file(plan_json_file_path);
 
+    // 显式 open()，WriteOnly | Text 模式会覆盖原文件
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning() << "无法打开文件：" << file.errorString();
+        return;
+    }
+
+    // 写入数据
+    QJsonDocument doc(usr_plan_obj);
+    if (file.write(doc.toJson()) == -1) {
+        qWarning() << "写入失败：" << file.errorString();
+    }
 }
-
 
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent), ui(new Ui::MainWindow) {
@@ -64,6 +71,8 @@ MainWindow::MainWindow(QWidget *parent) :
     "    padding-right: 20px;"
     "    background: white;"          // 默认背景
     "    color: black;"              // 默认文字
+    "    font-size: 20pt;"
+    "    height: 30px;"
     "}"
 
     "QListWidget::item:hover {"
