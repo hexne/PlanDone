@@ -6,6 +6,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+if (CMAKE_SYSTEM_NAME STREQUAL Windows)
+    set(Qt6_DIR "D:\\Libs\\QT\\6.9.0\\mingw_64\\lib\\cmake\\Qt6")
+
+endif ()
 
 find_package(Qt6 COMPONENTS
     Core
