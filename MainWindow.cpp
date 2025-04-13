@@ -12,10 +12,31 @@
 #include <QJsonDocument>
 #include <QFile>
 
-struct PlanItem {
-    bool flag{};
+struct Plan {
     QString plan_name{};
 };
+
+class Data {
+    int y{}, m{}, d{};
+    std::vector<std::shared_ptr<Plan>> done_plans;  // 每日完成的计划列表
+
+public:
+    bool operator==(const Data &other) const {
+        return d == other.d && m == other.m && y == other.y;
+    }
+
+    bool find(const QString &plan_name) const {
+        return std::ranges::any_of(done_plans, [&plan_name](const auto &plan) {
+            return plan->plan_name == plan_name;
+        });
+    }
+
+};
+
+struct Calendar {
+    std::vector<Data> calendar_;
+};
+
 
 QString plan_json_file_path = "./plan.json";
 QJsonObject usr_plan_obj;
