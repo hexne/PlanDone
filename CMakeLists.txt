@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 project(PlanDone)
 
-set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -23,6 +23,7 @@ target_sources(Modules
         Date.cppm
         Plan.cppm
         User.cppm
+        Calendar.cppm
 )
 
 add_executable(PlanDone

@@ -2,6 +2,7 @@ module;
 #include <string>
 export module Plan;
 
+import Date;
 
 export struct Plan {
     enum class PlanType {
@@ -12,6 +13,9 @@ export struct Plan {
     bool operator == (const Plan &other) const {
         return plan_name == other.plan_name && plan_type == other.plan_type;
     }
+
+    Date start_date;
+
 };
 
 

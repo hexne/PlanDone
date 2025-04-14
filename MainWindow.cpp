@@ -16,10 +16,7 @@
 #include <iostream>
 #include <QString>
 
-import Date;
-
-
-
+import Calendar;
 
 
 QString plan_json_file_path = "./plan.json";
@@ -114,10 +111,6 @@ MainWindow::MainWindow(QWidget *parent) :
             }
         }
     });
-
-    Calendar calendar;
-    calendar.print();
-
 
 }
 
