@@ -16,6 +16,15 @@ find_package(Qt6 COMPONENTS
     Widgets
 REQUIRED)
 
+add_library(Modules)
+target_sources(Modules
+        PUBLIC
+        FILE_SET cxx_modules TYPE CXX_MODULES FILES
+        Date.cppm
+        Plan.cppm
+        User.cppm
+)
+
 add_executable(PlanDone
     main.cpp
 
@@ -26,5 +35,6 @@ add_executable(PlanDone
 target_link_libraries(PlanDone
     Qt::Core
     Qt::Widgets
+    Modules
 )
 
