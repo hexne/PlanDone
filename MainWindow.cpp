@@ -38,13 +38,14 @@ class Calendar {
     using Year = std::vector<Month>;
     std::vector<Year> calendar_;
 public:
-    Data &find(const Data &data) {
+    Data &find(const Data &date) {
         for (auto &day : calendar_ | std::ranges::views::join | std::ranges::views::join) {
-            if (day == data)
+            if (date == day)
                 return day;
         }
-        throw std::runtime_error("No calendar data found");
+        throw std::runtime_error("This Day found");
     }
+
 
     // 创建2025.1.1 到 今天 的日历
     Calendar() {
