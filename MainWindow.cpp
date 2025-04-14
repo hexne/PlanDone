@@ -11,6 +11,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFile>
+#include <ranges>
 
 struct Plan {
     QString plan_name{};
@@ -30,11 +31,39 @@ public:
             return plan->plan_name == plan_name;
         });
     }
+};
+
+class Calendar {
+    using Month = std::vector<Data>;
+    using Year = std::vector<Month>;
+    std::vector<Year> calendar_;
+public:
+    Data &find(const Data &data) {
+        for (auto &day : calendar_ | std::ranges::views::join | std::ranges::views::join) {
+            if (day == data)
+                return day;
+        }
+        throw std::runtime_error("No calendar data found");
+    }
+
+    // 创建2025.1.1 到 今天 的日历
+    Calendar() {
+
+    }
 
 };
 
-struct Calendar {
-    std::vector<Data> calendar_;
+class User {
+    bool is_local_ = true;
+    size_t id_;
+    Calendar calendar_;
+public:
+    bool is_local() const {
+        return is_local_;
+    }
+
+
+
 };
 
 
