@@ -20,6 +20,8 @@ import Calendar;
 
 
 QString plan_json_file_path = "./plan.json";
+
+// 把解析出的数据给用户类，用户解析出plan,之后的plan从用户类中获取
 QJsonObject usr_plan_obj;
 
 void LoadPlan() {

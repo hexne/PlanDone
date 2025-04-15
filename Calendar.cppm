@@ -24,7 +24,6 @@ public:
         throw std::runtime_error("This Day found");
     }
 
-
     Calendar() {
         Date end_time = std::chrono::system_clock::now();
 
@@ -44,6 +43,10 @@ public:
             }
             calendar_.push_back(push_year);
         }
+    }
+
+    auto to_iterator() {
+        return calendar_ | std::ranges::views::join | std::ranges::views::join;
     }
 
 
