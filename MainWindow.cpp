@@ -17,6 +17,7 @@
 #include <QString>
 
 import Calendar;
+import Date;
 
 
 QString plan_json_file_path = "./plan.json";
@@ -56,6 +57,7 @@ void SavePlan() {
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
+
     // 设置整个列表的样式
     ui->plan_list->setStyleSheet(
     "QListWidget::item {"

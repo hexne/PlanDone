@@ -17,6 +17,25 @@ export struct Date {
 
     Date() = default;
 
+    // 日期的格式为：2025/04/03
+    // 精度暂时只支持到日期
+    Date (std::string date) {
+        std::string tmp;
+        int time[3]{}, index{};
+        for (int i = 0;i < date.size(); ++i) {
+            // 如果遇到分隔符
+            if (date[i] == '/') {
+                time[index ++] = std::stoi(tmp);
+                tmp.clear();
+            }
+            else {
+                tmp += date[i];
+            }
+        }
+        time[index] = std::stoi(tmp);
+
+        new (this) Date(time[0], time[1], time[2]);
+    }
     Date(int y, int m, int d) : year(y), month(m), day(d) {
         namespace sc = std::chrono;
         auto ymd = sc::year_month_day(sc::year(y), sc::month(m), sc::day(d));
@@ -32,6 +51,9 @@ export struct Date {
         week = std::chrono::weekday(ymd).iso_encoding();
     }
 
+    std::string to_string() {
+        return std::format("{:4}/{:02}/{:02}", year, month, day);
+    }
     auto operator <=> (const Date &other) const {
         return std::strong_order(day_count, other.day_count);
     }

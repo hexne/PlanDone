@@ -21,7 +21,7 @@ public:
     }
 
     // 只获取今天有效的计划
-    std::vector<std::shared_ptr<Plan>> &get_cur_date_plans() {
+    std::vector<std::shared_ptr<Plan>> get_cur_date_plans() {
         std::vector<std::shared_ptr<Plan>> ret;
         auto cur_date = Date::now();
 

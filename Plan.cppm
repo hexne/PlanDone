@@ -10,6 +10,7 @@ import Date;
 // 计划名称
 // 计划参数
 // 开始时间
+// 该计划是否已经失效
 export struct Plan {
     enum class PlanType {
         OneTimePlan, IntervalDaysPlan, FixedDatePlan, DurationPlan
