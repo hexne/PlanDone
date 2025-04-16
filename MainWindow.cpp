@@ -11,19 +11,80 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFile>
-#include <ranges>
+#include <memory>
 #include <chrono>
 #include <iostream>
 #include <QString>
 
 import Calendar;
 import Date;
+import Plan;
 
 
 QString plan_json_file_path = "./plan.json";
 
 // 把解析出的数据给用户类，用户解析出plan,之后的plan从用户类中获取
 QJsonObject usr_plan_obj;
+
+QJsonObject PlanToJson(const std::shared_ptr<Plan> &plan) {
+    if (!plan) {
+        return QJsonObject();
+    }
+
+    QJsonObject json;
+    json["plan_type"] = static_cast<int>(plan->plan_type);
+    json["plan_name"] = QString::fromStdString(plan->plan_name);
+    json["need_delete"] = plan->need_delete;
+    json["value"] = static_cast<int>(plan->value);
+    json["fixed_type"] = static_cast<int>(plan->fixed_type);
+    json["start_date"] = QString::fromStdString(plan->start_date.to_string());
+
+    return json;
+}
+
+
+std::shared_ptr<Plan> JsonToPlan(QJsonObject json) {
+
+    if (json.isEmpty()) {
+        return nullptr;
+    }
+
+    Plan::PlanType type = static_cast<Plan::PlanType>(json["plan_type"].toInt());
+    std::shared_ptr<Plan> plan;
+
+    switch (type) {
+    case Plan::PlanType::OneTimePlan:
+        plan = std::make_shared<OneTimePlan>();
+        break;
+    case Plan::PlanType::IntervalDaysPlan:
+        plan = std::make_shared<IntervalDaysPlan>(json["value"].toInt());
+        plan->value = json["value"].toInt();
+        break;
+    case Plan::PlanType::FixedDatePlan:
+        plan = std::make_shared<FixedDatePlan>(static_cast<Plan::FixedType>(json["fixed_type"].toInt()), json["fixed_value"].toInt());
+        break;
+    case Plan::PlanType::DurationPlan:
+        plan = std::make_shared<DurationPlan>();
+        break;
+    default:
+        return nullptr;
+    }
+
+    plan->plan_name = json["plan_name"].toString().toStdString();
+    plan->need_delete = json["need_delete"].toBool();
+    plan->value = json["value"].toInt();
+    plan->fixed_type = static_cast<Plan::FixedType>(json["fixed_type"].toInt());
+    plan->start_date = Date(json["start_date"].toString().toStdString());
+
+
+    return plan;
+
+}
+
+
+
+
+
 
 void LoadPlan() {
     QFile file(plan_json_file_path);

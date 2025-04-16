@@ -13,16 +13,23 @@ import Date;
 // 该计划是否已经失效
 export struct Plan {
     enum class PlanType {
-        OneTimePlan, IntervalDaysPlan, FixedDatePlan, DurationPlan
+        OneTimePlan, IntervalDaysPlan, FixedDatePlan, DurationPlan,
     } plan_type;
     std::string plan_name{};
     bool need_delete{};
 
+
+    size_t value;
+    enum class FixedType {
+        Year, Month, Day, Week
+    } fixed_type;
+
+
+    Date start_date;
+
     bool operator == (const Plan &other) const {
         return plan_name == other.plan_name && plan_type == other.plan_type;
     }
-
-    Date start_date;
 
     virtual bool active(const Date &) = 0;
     virtual ~Plan() = default;
@@ -50,11 +57,11 @@ public:
 
 
 // 固定天数循环一次的计划
-export class IntervalDaysPlan : Plan {
-    size_t interval_days_{};
+export class IntervalDaysPlan : public Plan {
 public:
-    IntervalDaysPlan(size_t interval) : interval_days_(interval) {
+    IntervalDaysPlan(size_t interval) {
         plan_type = PlanType::IntervalDaysPlan;
+        value = interval;
     }
 
     bool active(const Date & date) {
@@ -63,7 +70,7 @@ public:
             return true;
 
         // 没有到达触发时间
-        if (day % interval_days_)
+        if (day % value)
             return false;
         return true;
 
@@ -73,46 +80,31 @@ public:
 
 
 // 特定日期的触发任务
-export class FixedDatePlan : Plan {
-    size_t year_{}, month_{}, day_{}, week_{};
-    enum class FixedType {
-        Year, Month, Day, Week
-    } fixed_type_;
+export class FixedDatePlan : public Plan {
+
 
 public:
 
-    FixedDatePlan(FixedType fixed_type, size_t val) : Plan() {
+    FixedDatePlan(FixedType type, size_t val) : Plan() {
         plan_type = PlanType::FixedDatePlan;
-        switch (fixed_type) {
-            case FixedType::Year:
-                year_ = val;
-                break;
-            case FixedType::Month:
-                month_ = val;
-                break;
-            case FixedType::Day:
-                day_ = val;
-                break;
-            case FixedType::Week:
-                week_ = val;
-                break;
-        }
+        fixed_type = type;
+        value = val;
     }
 
     bool active(const Date & date) {
         bool flag{};
-        switch (fixed_type_) {
+        switch (fixed_type) {
             case FixedType::Year:
-                flag = start_date.year == date.year;
+                flag = value == date.year;
                 break;
             case FixedType::Month:
-                flag = start_date.month == date.month;
+                flag = value == date.month;
                 break;
             case FixedType::Day:
-                flag = start_date.day == date.day;
+                flag = value == date.day;
                 break;
             case FixedType::Week:
-                flag = start_date.week == date.week;
+                flag = value == date.week;
                 break;
         }
         return flag;
@@ -122,17 +114,17 @@ public:
 
 
 // 持续特定时间的计划
-export class DurationPlan : Plan {
-    size_t duration_{};
+export class DurationPlan : public Plan {
 
 public:
-    DurationPlan(size_t duration) : duration_(duration) {
+    DurationPlan(size_t duration) {
         plan_type = PlanType::DurationPlan;
+        value = duration;
     }
 
     bool active(const Date & date) {
         auto duration_day = date - start_date;
-        if (duration_day < duration_)
+        if (duration_day < value)
             return true;
         need_delete = true;
         return false;
