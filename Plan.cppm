@@ -14,12 +14,12 @@ import Date;
 export struct Plan {
     enum class PlanType {
         OneTimePlan, IntervalDaysPlan, FixedDatePlan, DurationPlan,
-    } plan_type;
+    } plan_type{};
     std::string plan_name{};
     bool need_delete{};
 
 
-    size_t value;
+    size_t value{};
     enum class FixedType {
         Year, Month, Day, Week
     } fixed_type;

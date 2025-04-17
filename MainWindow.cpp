@@ -12,19 +12,17 @@
 #include <QJsonDocument>
 #include <QFile>
 #include <memory>
-#include <chrono>
 #include <iostream>
+#include <QJsonArray>
 #include <QString>
 
 import Calendar;
 import Date;
 import Plan;
+import User;
 
 
 QString plan_json_file_path = "./plan.json";
-
-// 把解析出的数据给用户类，用户解析出plan,之后的plan从用户类中获取
-QJsonObject usr_plan_obj;
 
 QJsonObject PlanToJson(const std::shared_ptr<Plan> &plan) {
     if (!plan) {
@@ -58,13 +56,12 @@ std::shared_ptr<Plan> JsonToPlan(QJsonObject json) {
         break;
     case Plan::PlanType::IntervalDaysPlan:
         plan = std::make_shared<IntervalDaysPlan>(json["value"].toInt());
-        plan->value = json["value"].toInt();
         break;
     case Plan::PlanType::FixedDatePlan:
         plan = std::make_shared<FixedDatePlan>(static_cast<Plan::FixedType>(json["fixed_type"].toInt()), json["fixed_value"].toInt());
         break;
     case Plan::PlanType::DurationPlan:
-        plan = std::make_shared<DurationPlan>();
+        plan = std::make_shared<DurationPlan>(json["value"].toInt());
         break;
     default:
         return nullptr;
@@ -76,48 +73,56 @@ std::shared_ptr<Plan> JsonToPlan(QJsonObject json) {
     plan->fixed_type = static_cast<Plan::FixedType>(json["fixed_type"].toInt());
     plan->start_date = Date(json["start_date"].toString().toStdString());
 
-
     return plan;
 
 }
 
 
-
-
-
-
-void LoadPlan() {
+void MainWindow::Load() {
+    std::vector<std::shared_ptr<Plan>> plans;
     QFile file(plan_json_file_path);
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    if (!file.exists())
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Failed to open file:" << plan_json_file_path;
         return;
-
-    QByteArray data = file.readAll();
-    QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &error);
-
-    if (error.error != QJsonParseError::NoError || !doc.isObject()) {
-        throw std::runtime_error("Error parsing JSON");
     }
-    usr_plan_obj = doc.object();
+
+    QByteArray json_data = file.readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(json_data);
+
+    if (doc.isArray()) {
+        QJsonArray jsonArray = doc.array();
+        for (const QJsonValue &value : jsonArray) {
+            if (value.isObject()) {
+                if (auto plan = JsonToPlan(value.toObject())) {
+                    plans.push_back(plan);
+                }
+            }
+        }
+    }
+    user_->plans = plans;
+
 }
+void MainWindow::Save() {
+    QJsonArray jsonArray;
 
-void SavePlan() {
+    for (const auto& plan : user_->plans) {
+        auto json = PlanToJson(plan);
+        jsonArray.append(json);
+    }
+
     QFile file(plan_json_file_path);
-
-    // 显式 open()，WriteOnly | Text 模式会覆盖原文件
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qWarning() << "无法打开文件：" << file.errorString();
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning() << "Failed to open file for writing:" << plan_json_file_path;
         return;
     }
 
-    QJsonDocument doc(usr_plan_obj);
-    file.write(doc.toJson());
+    file.write(QJsonDocument(jsonArray).toJson());
 }
 
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
+    user_ = std::make_shared<User>();
 
     // 设置整个列表的样式
     ui->plan_list->setStyleSheet(
@@ -135,14 +140,13 @@ MainWindow::MainWindow(QWidget *parent) :
     "}"
     );
 
-    LoadPlan();
+    Load();
 
     // 加载之前的计划
     // 之前的计划可以使用json保存
-    for (const auto& key : usr_plan_obj.keys()) {
-        const QJsonValue& value = usr_plan_obj.value(key);
+    for (const auto& plan : user_->plans) {
 
-        auto item = new QListWidgetItem(key, ui->plan_list);
+        auto item = new QListWidgetItem(plan->plan_name.data(), ui->plan_list);
         item->setCheckState(Qt::Unchecked);
     }
     static auto add = new QListWidgetItem("[+]", ui->plan_list);
@@ -160,9 +164,12 @@ MainWindow::MainWindow(QWidget *parent) :
                 int insert_index = ui->plan_list->row(add);
                 ui->plan_list->insertItem(insert_index, new QListWidgetItem(text));
                 ui->plan_list->item(insert_index)->setCheckState(Qt::Unchecked);
+                auto new_plan = std::make_shared<OneTimePlan>();
+                new_plan->plan_name = text.toStdString();
+                new_plan->start_date = Date::now();
+                user_->plans.push_back(new_plan);
 
-                usr_plan_obj.insert(text, "");
-                SavePlan();
+                Save();
             }
 
         }

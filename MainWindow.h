@@ -9,6 +9,7 @@
 
 #include <QWidget>
 
+class User;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -21,8 +22,13 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
+    void Load();
+
+    void Save();
+
 private:
     Ui::MainWindow *ui;
+    std::shared_ptr<User> user_;
 };
 
 
