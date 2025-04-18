@@ -22,7 +22,7 @@ export struct Plan {
     size_t value{};
     enum class FixedType {
         Year, Month, Day, Week
-    } fixed_type;
+    } fixed_type{};
 
 
     Date start_date;
