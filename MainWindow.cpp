@@ -16,10 +16,11 @@
 #include <QJsonArray>
 #include <QString>
 
+#include "User.h"
+
 import Calendar;
 import Date;
 import Plan;
-import User;
 
 
 QString plan_json_file_path = "./plan.json";

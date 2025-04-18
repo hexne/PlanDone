@@ -22,7 +22,6 @@ target_sources(Modules
         FILE_SET cxx_modules TYPE CXX_MODULES FILES
         Date.cppm
         Plan.cppm
-        User.cppm
         Calendar.cppm
 )
 
