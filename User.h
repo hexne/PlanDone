@@ -7,12 +7,13 @@
 
 #include <memory>
 
-import Date;
+import Time;
 import Plan;
 
 class User {
     bool is_local_ = true;
     size_t id{};
+    nl::Time reminder_time_;
 public:
 
     std::vector<std::shared_ptr<Plan>> plans, expired_plan;

@@ -19,7 +19,7 @@
 #include "User.h"
 
 import Calendar;
-import Date;
+import Time;
 import Plan;
 
 
@@ -72,7 +72,7 @@ std::shared_ptr<Plan> JsonToPlan(QJsonObject json) {
     plan->need_delete = json["need_delete"].toBool();
     plan->value = json["value"].toInt();
     plan->fixed_type = static_cast<Plan::FixedType>(json["fixed_type"].toInt());
-    plan->start_date = Date(json["start_date"].toString().toStdString());
+    plan->start_date = nl::Time(json["start_date"].toString().toStdString());
 
     return plan;
 
@@ -167,7 +167,7 @@ MainWindow::MainWindow(QWidget *parent) :
                 ui->plan_list->item(insert_index)->setCheckState(Qt::Unchecked);
                 auto new_plan = std::make_shared<OneTimePlan>();
                 new_plan->plan_name = text.toStdString();
-                new_plan->start_date = Date::now();
+                new_plan->start_date = nl::Time::now();
                 user_->plans.push_back(new_plan);
 
                 Save();

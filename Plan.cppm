@@ -1,9 +1,9 @@
 module;
 #include <string>
+#include <chrono>
 export module Plan;
 
-import Date;
-
+import Time;
 
 // 对于一个计划序列化文件
 // 计划类型
@@ -25,13 +25,13 @@ export struct Plan {
     } fixed_type{};
 
 
-    Date start_date;
+    nl::Time start_date;
 
     bool operator == (const Plan &other) const {
         return plan_name == other.plan_name && plan_type == other.plan_type;
     }
 
-    virtual bool active(const Date &) = 0;
+    virtual bool active(const nl::Time &) = 0;
     virtual ~Plan() = default;
 };
 
@@ -45,7 +45,7 @@ public:
         plan_type = PlanType::OneTimePlan;
     }
 
-    bool active(const Date & date) {
+    bool active(const nl::Time & date) {
         if (date == start_date)
             return true;
         need_delete = true;
@@ -64,8 +64,8 @@ public:
         value = interval;
     }
 
-    bool active(const Date & date) {
-        auto day = date - start_date;
+    bool active(const nl::Time & date) {
+        auto day = (date - start_date).count<std::chrono::milliseconds>();
         if (date == start_date)
             return true;
 
@@ -91,20 +91,20 @@ public:
         value = val;
     }
 
-    bool active(const Date & date) {
+    bool active(const nl::Time & date) {
         bool flag{};
         switch (fixed_type) {
             case FixedType::Year:
-                flag = value == date.year;
+                flag = value == date.get_year();
                 break;
             case FixedType::Month:
-                flag = value == date.month;
+                flag = value == date.get_month();
                 break;
             case FixedType::Day:
-                flag = value == date.day;
+                flag = value == date.get_day();
                 break;
             case FixedType::Week:
-                flag = value == date.week;
+                flag = value == date.get_week();
                 break;
         }
         return flag;
@@ -122,8 +122,8 @@ public:
         value = duration;
     }
 
-    bool active(const Date & date) {
-        auto duration_day = date - start_date;
+    bool active(const nl::Time & date) {
+        auto duration_day = (date - start_date).count<std::chrono::days>();
         if (duration_day < value)
             return true;
         need_delete = true;
