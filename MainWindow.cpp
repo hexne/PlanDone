@@ -83,7 +83,7 @@ void MainWindow::Load() {
     std::vector<std::shared_ptr<Plan>> plans;
     QFile file(plan_json_file_path);
     if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << "Failed to open file:" << plan_json_file_path;
+        // qWarning() << "Failed to open file:" << plan_json_file_path;
         return;
     }
 

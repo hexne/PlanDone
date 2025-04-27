@@ -31,5 +31,9 @@
 *.out
 *.app
 
+*.pdb
+
 cmake-build-debug
 .idea
+.vs
+out
