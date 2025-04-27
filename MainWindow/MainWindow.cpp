@@ -16,7 +16,9 @@
 #include <QJsonArray>
 #include <QString>
 
+
 #include "User.h"
+#include "AddWindow/AddWindow.h"
 
 import Calendar;
 import Time;
@@ -156,22 +158,25 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->plan_list, &QListWidget::itemClicked, [this](QListWidgetItem *item) {
         // 每次添加或者删除的时候重新保存usr_plan_json文件
         if (item == add) {
-            bool ok;
-            QString text = QInputDialog::getText(this, "添加新计划",
-                                               "请输入计划内容:",
-                                               QLineEdit::Normal,
-                                               "", &ok);
-            if (ok && !text.isEmpty()) {
-                int insert_index = ui->plan_list->row(add);
-                ui->plan_list->insertItem(insert_index, new QListWidgetItem(text));
-                ui->plan_list->item(insert_index)->setCheckState(Qt::Unchecked);
-                auto new_plan = std::make_shared<OneTimePlan>();
-                new_plan->plan_name = text.toStdString();
-                new_plan->start_date = nl::Time::now();
-                user_->plans.push_back(new_plan);
+            auto add_window = new AddWindow(this);
+            add_window->exec();
 
-                Save();
-            }
+            //bool ok;
+            //QString text = QInputDialog::getText(this, "添加新计划",
+            //                                   "请输入计划内容:",
+            //                                   QLineEdit::Normal,
+            //                                   "", &ok);
+            //if (ok && !text.isEmpty()) {
+            //    int insert_index = ui->plan_list->row(add);
+            //    ui->plan_list->insertItem(insert_index, new QListWidgetItem(text));
+            //    ui->plan_list->item(insert_index)->setCheckState(Qt::Unchecked);
+            //    auto new_plan = std::make_shared<OneTimePlan>();
+            //    new_plan->plan_name = text.toStdString();
+            //    new_plan->start_date = nl::Time::now();
+            //    user_->plans.push_back(new_plan);
+
+            //    Save();
+            //}
 
         }
         // 点击的是其他选项

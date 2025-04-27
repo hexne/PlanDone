@@ -37,3 +37,6 @@ cmake-build-debug
 .idea
 .vs
 out
+build
+
+CMakeLists.txt.user

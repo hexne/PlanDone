@@ -25,8 +25,6 @@ endif()
 
 find_package(NeLib REQUIRED)
 find_package(Qt6 COMPONENTS Core Widgets REQUIRED)
-message(STATUS "path is : " ${CMAKE_PREFIX_PATH})
-message(STATUS "qt6 dir is : ${Qt6_DIR}")
 
 add_library(Modules)
 target_sources(Modules
@@ -37,14 +35,21 @@ target_sources(Modules
 )
 target_link_libraries(Modules PRIVATE NeLib)
 
+# include_directories(${CMAKE_SOURCE_DIR})
+
 add_executable(PlanDone
     ${close_console_flag}
     main.cpp
-    MainWindow.h
-    MainWindow.cpp
-    MainWindow.ui
-)
+    MainWindow/MainWindow.cpp
+    MainWindow/MainWindow.ui
 
+    AddWindow/AddWindow.cpp
+    AddWindow/AddWindow.ui
+)
+target_include_directories(PlanDone
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}
+)
 target_link_libraries(PlanDone PRIVATE
     Qt6::Core
     Qt6::Widgets
