@@ -8,6 +8,8 @@
 #define MAINWINDOW_H
 
 #include <QWidget>
+#include <QThread>
+#include <QTimer>
 
 class User;
 
@@ -29,6 +31,8 @@ public:
 private:
     Ui::MainWindow *ui;
     std::shared_ptr<User> user_;
+    QThread listen_thread_;
+    QTimer listen_timer_;
 };
 
 

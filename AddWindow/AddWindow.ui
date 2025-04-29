@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>229</width>
+    <width>263</width>
     <height>263</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>                                                                               </string>
+   <string/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -88,7 +88,10 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="value"/>
+      <widget class="QSpinBox" name="value"/>
+     </item>
+     <item>
+      <widget class="QComboBox" name="value_type"/>
      </item>
     </layout>
    </item>
@@ -114,7 +117,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QDateTimeEdit" name="start_time"/>
+      <widget class="QDateEdit" name="begin_date"/>
      </item>
     </layout>
    </item>
@@ -135,12 +138,12 @@
         </size>
        </property>
        <property name="text">
-        <string>计划提示时间 : </string>
+        <string>计划提醒时间 : </string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QDateTimeEdit" name="tip_time"/>
+      <widget class="QTimeEdit" name="reminder_time"/>
      </item>
     </layout>
    </item>

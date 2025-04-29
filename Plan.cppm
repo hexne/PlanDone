@@ -21,16 +21,23 @@ export struct Plan {
 
     size_t value{};
     enum class FixedType {
-        Year, Month, Day, Week
+        Day, Week, Month, Year
     } fixed_type{};
 
 
-    nl::Time start_date;
+    nl::Time begin_date, reminder_time;
 
     bool operator == (const Plan &other) const {
         return plan_name == other.plan_name && plan_type == other.plan_type;
     }
 
+    bool need_reminder(const nl::Time &time) {
+        if (time.get_hour() == reminder_time.get_hour()
+            && time.get_minute() == reminder_time.get_minute()
+            && time.get_second() == reminder_time.get_second())
+			return true;
+        return false;
+    }
     virtual bool active(const nl::Time &) = 0;
     virtual ~Plan() = default;
 };
@@ -46,7 +53,7 @@ public:
     }
 
     bool active(const nl::Time & date) {
-        if (date == start_date)
+        if (date == begin_date)
             return true;
         need_delete = true;
         return false;
@@ -65,8 +72,8 @@ public:
     }
 
     bool active(const nl::Time & date) {
-        auto day = (date - start_date).count<std::chrono::milliseconds>();
-        if (date == start_date)
+        auto day = (date - begin_date).count<std::chrono::milliseconds>();
+        if (date == begin_date)
             return true;
 
         // 没有到达触发时间
@@ -123,7 +130,7 @@ public:
     }
 
     bool active(const nl::Time & date) {
-        auto duration_day = (date - start_date).count<std::chrono::days>();
+        auto duration_day = (date - begin_date).count<std::chrono::days>();
         if (duration_day < value)
             return true;
         need_delete = true;

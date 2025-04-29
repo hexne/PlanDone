@@ -7,22 +7,34 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
+#include <memory>
+#include <iostream>
+
 #include <QInputDialog>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFile>
-#include <memory>
-#include <iostream>
 #include <QJsonArray>
 #include <QString>
 
 
-#include "User.h"
 #include "AddWindow/AddWindow.h"
 
+import User;
 import Calendar;
 import Time;
 import Plan;
+
+
+
+// 提示用户还有任务没有完成
+void Reminder(const std::shared_ptr<Plan> &plan) {
+
+
+
+}
+
+
 
 
 QString plan_json_file_path = "./plan.json";
@@ -38,7 +50,8 @@ QJsonObject PlanToJson(const std::shared_ptr<Plan> &plan) {
     json["need_delete"] = plan->need_delete;
     json["value"] = static_cast<int>(plan->value);
     json["fixed_type"] = static_cast<int>(plan->fixed_type);
-    json["start_date"] = QString::fromStdString(plan->start_date.to_string());
+    json["begin_date"] = QString::fromStdString(plan->begin_date.to_string());
+    json["reminder_time"] = QString::fromStdString(plan->reminder_time.to_string());
 
     return json;
 }
@@ -74,7 +87,8 @@ std::shared_ptr<Plan> JsonToPlan(QJsonObject json) {
     plan->need_delete = json["need_delete"].toBool();
     plan->value = json["value"].toInt();
     plan->fixed_type = static_cast<Plan::FixedType>(json["fixed_type"].toInt());
-    plan->start_date = nl::Time(json["start_date"].toString().toStdString());
+    plan->begin_date = nl::Time(json["begin_date"].toString().toStdString());
+    plan->reminder_time = nl::Time(json["reminder_time"].toString().toStdString());
 
     return plan;
 
@@ -97,12 +111,11 @@ void MainWindow::Load() {
         for (const QJsonValue &value : jsonArray) {
             if (value.isObject()) {
                 if (auto plan = JsonToPlan(value.toObject())) {
-                    plans.push_back(plan);
+                    user_->plans.push_back(plan);
                 }
             }
         }
     }
-    user_->plans = plans;
 
 }
 void MainWindow::Save() {
@@ -147,7 +160,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // 加载之前的计划
     // 之前的计划可以使用json保存
-    for (const auto& plan : user_->plans) {
+    for (const auto& plan : user_->get_cur_date_plans()) {
 
         auto item = new QListWidgetItem(plan->plan_name.data(), ui->plan_list);
         item->setCheckState(Qt::Unchecked);
@@ -161,22 +174,18 @@ MainWindow::MainWindow(QWidget *parent) :
             auto add_window = new AddWindow(this);
             add_window->exec();
 
-            //bool ok;
-            //QString text = QInputDialog::getText(this, "添加新计划",
-            //                                   "请输入计划内容:",
-            //                                   QLineEdit::Normal,
-            //                                   "", &ok);
-            //if (ok && !text.isEmpty()) {
-            //    int insert_index = ui->plan_list->row(add);
-            //    ui->plan_list->insertItem(insert_index, new QListWidgetItem(text));
-            //    ui->plan_list->item(insert_index)->setCheckState(Qt::Unchecked);
-            //    auto new_plan = std::make_shared<OneTimePlan>();
-            //    new_plan->plan_name = text.toStdString();
-            //    new_plan->start_date = nl::Time::now();
-            //    user_->plans.push_back(new_plan);
+            // 如果没有成功添加计划, 点击了取消啊
+            if (!add_window->plan) {
+                std::cout << "取消" << std::endl;
+                return;
+            }
+            int insert_index = ui->plan_list->row(add);
+            ui->plan_list->insertItem(insert_index, new QListWidgetItem(add_window->plan->plan_name.c_str()));
+            ui->plan_list->item(insert_index)->setCheckState(Qt::Unchecked);
 
-            //    Save();
-            //}
+            user_->plans.push_back(add_window->plan);
+
+            Save();
 
         }
         // 点击的是其他选项
@@ -189,6 +198,30 @@ MainWindow::MainWindow(QWidget *parent) :
             }
         }
     });
+
+
+    listen_timer_.moveToThread(&listen_thread_);
+
+    QObject::connect(&listen_thread_, &QThread::started, [&] {
+			listen_timer_.start(1000);
+        }
+    );
+
+    QObject::connect(&listen_timer_, &QTimer::timeout, [this] {
+        nl::Time now;
+
+        for (auto plan : user_->plans) {
+            if (!plan->need_reminder(now))
+                return;
+
+            Reminder(plan);
+
+        }
+
+        std::cout << now << std::endl;
+	});
+
+    listen_thread_.start();
 
 }
 

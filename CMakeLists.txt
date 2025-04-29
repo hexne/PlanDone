@@ -19,7 +19,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif()
 
 if(MSVC)
-    add_compile_options(/Zc:__cplusplus /permissive- /utf-8 -D_UTF8)
+    add_compile_options(/Zc:__cplusplus)
     set(close_console_flag WIN32)
 endif()
 
@@ -30,6 +30,7 @@ add_library(Modules)
 target_sources(Modules
     PUBLIC
     FILE_SET cxx_modules TYPE CXX_MODULES FILES
+		User.cppm
         Plan.cppm
         Calendar.cppm
 )
@@ -38,7 +39,7 @@ target_link_libraries(Modules PRIVATE NeLib)
 # include_directories(${CMAKE_SOURCE_DIR})
 
 add_executable(PlanDone
-    ${close_console_flag}
+    # ${close_console_flag}
     main.cpp
     MainWindow/MainWindow.cpp
     MainWindow/MainWindow.ui
