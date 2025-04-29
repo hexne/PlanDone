@@ -16,7 +16,7 @@
 #include <QFile>
 #include <QJsonArray>
 #include <QString>
-
+#include <QSystemTrayIcon>
 
 #include "AddWindow/AddWindow.h"
 
@@ -29,9 +29,15 @@ import Plan;
 
 // 提示用户还有任务没有完成
 void Reminder(const std::shared_ptr<Plan> &plan) {
-
-
-
+    static QSystemTrayIcon icon;
+	icon.setIcon(QIcon(QPixmap(50,50)));
+	icon.show();
+	icon.showMessage(
+		"任务未完成提醒",
+		plan->plan_name.c_str(),
+		QSystemTrayIcon::Information,
+		3000
+	);
 }
 
 
@@ -211,7 +217,7 @@ MainWindow::MainWindow(QWidget *parent) :
         nl::Time now;
 
         for (auto plan : user_->plans) {
-            if (!plan->need_reminder(now))
+            if (plan->need_reminder(now))
                 return;
 
             Reminder(plan);
