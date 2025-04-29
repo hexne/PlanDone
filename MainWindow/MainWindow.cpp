@@ -217,7 +217,7 @@ MainWindow::MainWindow(QWidget *parent) :
         nl::Time now;
 
         for (auto plan : user_->plans) {
-            if (plan->need_reminder(now))
+            if (!plan->need_reminder(now))
                 return;
 
             Reminder(plan);
