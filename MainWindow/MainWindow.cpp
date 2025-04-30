@@ -169,6 +169,7 @@ MainWindow::MainWindow(QWidget *parent) :
     static auto add = new QListWidgetItem("[+]", ui->plan_list);
     add->setTextAlignment(Qt::AlignCenter);
 
+    // 左键点击
     connect(ui->plan_list, &QListWidget::itemClicked, [this](QListWidgetItem *item) {
         // 每次添加或者删除的时候重新保存usr_plan_json文件
         if (item == add) {
@@ -200,6 +201,17 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     });
 
+    ui->plan_list->setContextMenuPolicy(Qt::CustomContextMenu);
+    // 右键点击
+    connect(ui->plan_list, &QListWidget::customContextMenuRequested, [this](const QPoint& pos) {
+        QListWidgetItem* item = ui->plan_list->itemAt(pos);
+        if (item == nullptr) 
+            return;
+
+        std::cout << "右键 : " << item->text().toStdString() << std::endl;
+
+
+        });
 
     QObject::connect(this, &MainWindow::Reminder, this, [this](std::shared_ptr<Plan> plan) {
 			if (!QSystemTrayIcon::isSystemTrayAvailable()) {
