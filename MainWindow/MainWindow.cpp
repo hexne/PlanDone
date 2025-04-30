@@ -17,6 +17,7 @@
 #include <QJsonArray>
 #include <QString>
 #include <QSystemTrayIcon>
+#include <QMenu>
 
 #include "AddWindow/AddWindow.h"
 
@@ -190,14 +191,9 @@ MainWindow::MainWindow(QWidget *parent) :
             Save();
 
         }
-        // 点击的是其他选项
+        // 点击的是其他选项, 点击了说明完成了这个计划
         else {
-            if (item->checkState() == Qt::Checked) {
-                item->setCheckState(Qt::Unchecked);
-            }
-            else {
-                item->setCheckState(Qt::Checked);
-            }
+			item->setCheckState(Qt::Checked);
         }
     });
 
@@ -209,9 +205,18 @@ MainWindow::MainWindow(QWidget *parent) :
             return;
 
         std::cout << "右键 : " << item->text().toStdString() << std::endl;
+        QMenu menu(ui->plan_list->viewport()); 
+        QAction* deleteAction = menu.addAction("Delete Item");
 
+        connect(deleteAction, &QAction::triggered, [this, item]() {
+            if (item) {
+                delete ui->plan_list->takeItem(ui->plan_list->row(item));
+            }
+		});
 
-        });
+        menu.exec(ui->plan_list->viewport()->mapToGlobal(pos));
+
+	});
 
     QObject::connect(this, &MainWindow::Reminder, this, [this](std::shared_ptr<Plan> plan) {
 			if (!QSystemTrayIcon::isSystemTrayAvailable()) {
