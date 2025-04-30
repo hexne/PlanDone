@@ -132,8 +132,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    icon.show();
     icon.setIcon(QPixmap(50,50));
+    icon.show();
 
 
 
@@ -199,10 +199,12 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
 
-
     QObject::connect(this, &MainWindow::Reminder, this, [this](std::shared_ptr<Plan> plan) {
-			if (!QSystemTrayIcon::isSystemTrayAvailable())
+			if (!QSystemTrayIcon::isSystemTrayAvailable()) {
+                std::cout << "abiailabel is false" << std::endl;
+
 				return;
+            }
 
 			icon.showMessage(
 				"任务未完成提醒",
@@ -222,15 +224,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QObject::connect(&listen_timer_, &QTimer::timeout, [this] {
         nl::Time now;
-
         for (auto plan : user_->plans) {
-            if (!plan->need_reminder(now))
+            if (!plan->need_reminder(now)) 
                 continue;
-
-            emit Reminder(plan);
+			emit Reminder(plan);
         }
-
-        std::cout << now << std::endl;
 	});
 
     listen_thread_.start();

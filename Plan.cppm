@@ -1,9 +1,24 @@
 module;
 #include <string>
+#include <iostream>
 #include <chrono>
 export module Plan;
 
 import Time;
+
+
+bool CompareDate(nl::Time time1, nl::Time time2) {
+    return time1.get_year() == time2.get_year()
+        && time1.get_month() == time2.get_month()
+        && time1.get_day() == time2.get_day();
+}
+bool CompareTime(nl::Time time1, nl::Time time2) {
+    return time1.get_hour() == time2.get_hour()
+        && time1.get_minute() == time2.get_minute()
+        && time1.get_second() == time2.get_second();
+}
+
+
 
 // 对于一个计划序列化文件
 // 计划类型
@@ -28,16 +43,14 @@ export struct Plan {
     nl::Time begin_date, reminder_time;
 
     bool operator == (const Plan &other) const {
-        return plan_name == other.plan_name && plan_type == other.plan_type;
+        return plan_name == other.plan_name 
+            && plan_type == other.plan_type;
     }
 
     bool need_reminder(const nl::Time &time) {
-        if (time.get_hour() == reminder_time.get_hour()
-            && time.get_minute() == reminder_time.get_minute()
-            && time.get_second() == reminder_time.get_second())
-			return true;
-        return false;
+        return CompareTime(reminder_time, time);
     }
+
     virtual bool active(const nl::Time &) = 0;
     virtual ~Plan() = default;
 };
@@ -53,7 +66,7 @@ public:
     }
 
     bool active(const nl::Time & date) {
-        if (date == begin_date)
+        if (CompareDate(date, begin_date))
             return true;
         need_delete = true;
         return false;
@@ -73,7 +86,7 @@ public:
 
     bool active(const nl::Time & date) {
         auto day = (date - begin_date).count<std::chrono::milliseconds>();
-        if (date == begin_date)
+        if (CompareDate(date, begin_date))
             return true;
 
         // 没有到达触发时间
