@@ -10,8 +10,10 @@
 #include <QWidget>
 #include <QThread>
 #include <QTimer>
+#include <QSystemTrayIcon>
 
 class User;
+class Plan;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -19,6 +21,10 @@ QT_END_NAMESPACE
 
 class MainWindow : public QWidget {
 Q_OBJECT
+
+
+signals:
+    void Reminder(std::shared_ptr<Plan>);
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
@@ -33,6 +39,7 @@ private:
     std::shared_ptr<User> user_;
     QThread listen_thread_;
     QTimer listen_timer_;
+    QSystemTrayIcon icon;
 };
 
 

@@ -17,7 +17,7 @@ export class User {
 	nl::Time reminder_time_;
 	
 public:
-	std::vector<std::shared_ptr<Plan>> plans;
+	std::vector<std::shared_ptr<Plan>> plans, done_plans, delete_plans;
 	bool is_local() const {
 		return is_local_;
 	}

@@ -20,25 +20,12 @@
 
 #include "AddWindow/AddWindow.h"
 
-import User;
 import Calendar;
+import User;
 import Time;
 import Plan;
 
 
-
-// 提示用户还有任务没有完成
-void Reminder(const std::shared_ptr<Plan> &plan) {
-    static QSystemTrayIcon icon;
-	icon.setIcon(QIcon(QPixmap(50,50)));
-	icon.show();
-	icon.showMessage(
-		"任务未完成提醒",
-		plan->plan_name.c_str(),
-		QSystemTrayIcon::Information,
-		3000
-	);
-}
 
 
 
@@ -144,6 +131,12 @@ void MainWindow::Save() {
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
+
+    icon.show();
+    icon.setIcon(QPixmap(50,50));
+
+
+
     user_ = std::make_shared<User>();
 
     // 设置整个列表的样式
@@ -206,9 +199,23 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
 
-    listen_timer_.moveToThread(&listen_thread_);
 
-    QObject::connect(&listen_thread_, &QThread::started, [&] {
+    QObject::connect(this, &MainWindow::Reminder, this, [this](std::shared_ptr<Plan> plan) {
+			if (!QSystemTrayIcon::isSystemTrayAvailable())
+				return;
+
+			icon.showMessage(
+				"任务未完成提醒",
+				plan->plan_name.c_str(),
+				QSystemTrayIcon::Information,
+				3000
+			);
+        }, 
+        Qt::QueuedConnection
+    );
+
+    listen_timer_.moveToThread(&listen_thread_);
+    QObject::connect(&listen_thread_, &QThread::started, [this] {
 			listen_timer_.start(1000);
         }
     );
@@ -218,10 +225,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
         for (auto plan : user_->plans) {
             if (!plan->need_reminder(now))
-                return;
+                continue;
 
-            Reminder(plan);
-
+            emit Reminder(plan);
         }
 
         std::cout << now << std::endl;
@@ -231,6 +237,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
+
 MainWindow::~MainWindow() {
+    listen_timer_.stop();
+    listen_thread_.quit();
+    listen_thread_.wait();
     delete ui;
 }
