@@ -39,7 +39,7 @@ private:
     std::shared_ptr<User> user_;
     QThread listen_thread_;
     QTimer listen_timer_;
-    QSystemTrayIcon icon;
+    QSystemTrayIcon system_tray_icon_;
 };
 
 

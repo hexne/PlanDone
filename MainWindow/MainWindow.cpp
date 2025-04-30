@@ -132,8 +132,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    icon.setIcon(QPixmap(50,50));
-    icon.show();
+    auto icon = QIcon(QPixmap(50, 50));
+    system_tray_icon_.setIcon(icon);
+    system_tray_icon_.show();
+    setWindowIcon(icon);
 
 
 
@@ -206,7 +208,7 @@ MainWindow::MainWindow(QWidget *parent) :
 				return;
             }
 
-			icon.showMessage(
+			system_tray_icon_.showMessage(
 				"任务未完成提醒",
 				plan->plan_name.c_str(),
 				QSystemTrayIcon::Information,
