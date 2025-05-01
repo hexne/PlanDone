@@ -11,6 +11,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QSystemTrayIcon>
+#include <QListWidget>
 
 class User;
 class Plan;
@@ -38,7 +39,8 @@ private:
     Ui::MainWindow *ui;
     std::shared_ptr<User> user_;
     QThread listen_thread_;
-    QTimer listen_timer_;
+    QTimer listen_timer_, click_timer_;
+    QListWidgetItem* cur_click_item_;
     QSystemTrayIcon system_tray_icon_;
 };
 

@@ -172,6 +172,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // 左键点击
     connect(ui->plan_list, &QListWidget::itemClicked, [this](QListWidgetItem *item) {
+        cur_click_item_ = item;
         // 每次添加或者删除的时候重新保存usr_plan_json文件
         if (item == add) {
             auto add_window = new AddWindow(this);
@@ -193,30 +194,31 @@ MainWindow::MainWindow(QWidget *parent) :
         }
         // 点击的是其他选项, 点击了说明完成了这个计划
         else {
-			item->setCheckState(Qt::Checked);
+            click_timer_.start(200);
         }
     });
+    QObject::connect(&click_timer_, &QTimer::timeout, [this]() {
+		std::cout << "单击" << std::endl;
+        click_timer_.stop();
+        
 
-    ui->plan_list->setContextMenuPolicy(Qt::CustomContextMenu);
-    // 右键点击
-    connect(ui->plan_list, &QListWidget::customContextMenuRequested, [this](const QPoint& pos) {
-        QListWidgetItem* item = ui->plan_list->itemAt(pos);
-        if (item == nullptr) 
-            return;
+		if (cur_click_item_->checkState() == Qt::Checked) {
+			cur_click_item_->setCheckState(Qt::Unchecked);
+		}
+		else {
+			cur_click_item_->setCheckState(Qt::Checked);
+		}
 
-        std::cout << "右键 : " << item->text().toStdString() << std::endl;
-        QMenu menu(ui->plan_list->viewport()); 
-        QAction* deleteAction = menu.addAction("Delete Item");
-
-        connect(deleteAction, &QAction::triggered, [this, item]() {
-            if (item) {
-                delete ui->plan_list->takeItem(ui->plan_list->row(item));
-            }
-		});
-
-        menu.exec(ui->plan_list->viewport()->mapToGlobal(pos));
 
 	});
+
+    // 双击更改计划名称
+    connect(ui->plan_list, &QListWidget::itemDoubleClicked, [this](QListWidgetItem* item) {
+        cur_click_item_ = item;
+        click_timer_.stop();
+        std::cout << "双击 " << item->text().toStdString() << std::endl;
+	});
+
 
     QObject::connect(this, &MainWindow::Reminder, this, [this](std::shared_ptr<Plan> plan) {
 			if (!QSystemTrayIcon::isSystemTrayAvailable()) {
