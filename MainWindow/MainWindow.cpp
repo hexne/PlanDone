@@ -20,6 +20,7 @@
 #include <QMenu>
 
 #include "AddWindow/AddWindow.h"
+#include "tools.h"
 
 import Calendar;
 import User;
@@ -29,104 +30,35 @@ import Plan;
 
 
 
-
-
-QString plan_json_file_path = "./plan.json";
-
-QJsonObject PlanToJson(const std::shared_ptr<Plan> &plan) {
-    if (!plan) {
-        return QJsonObject();
-    }
-
-    QJsonObject json;
-    json["plan_type"] = static_cast<int>(plan->plan_type);
-    json["plan_name"] = QString::fromStdString(plan->plan_name);
-    json["need_delete"] = plan->need_delete;
-    json["value"] = static_cast<int>(plan->value);
-    json["fixed_type"] = static_cast<int>(plan->fixed_type);
-    json["begin_date"] = QString::fromStdString(plan->begin_date.to_string());
-    json["reminder_time"] = QString::fromStdString(plan->reminder_time.to_string());
-
-    return json;
-}
-
-
-std::shared_ptr<Plan> JsonToPlan(QJsonObject json) {
-
-    if (json.isEmpty()) {
-        return nullptr;
-    }
-
-    Plan::PlanType type = static_cast<Plan::PlanType>(json["plan_type"].toInt());
-    std::shared_ptr<Plan> plan;
-
-    switch (type) {
-    case Plan::PlanType::OneTimePlan:
-        plan = std::make_shared<OneTimePlan>();
-        break;
-    case Plan::PlanType::IntervalDaysPlan:
-        plan = std::make_shared<IntervalDaysPlan>(json["value"].toInt());
-        break;
-    case Plan::PlanType::FixedDatePlan:
-        plan = std::make_shared<FixedDatePlan>(static_cast<Plan::FixedType>(json["fixed_type"].toInt()), json["fixed_value"].toInt());
-        break;
-    case Plan::PlanType::DurationPlan:
-        plan = std::make_shared<DurationPlan>(json["value"].toInt());
-        break;
-    default:
-        return nullptr;
-    }
-
-    plan->plan_name = json["plan_name"].toString().toStdString();
-    plan->need_delete = json["need_delete"].toBool();
-    plan->value = json["value"].toInt();
-    plan->fixed_type = static_cast<Plan::FixedType>(json["fixed_type"].toInt());
-    plan->begin_date = nl::Time(json["begin_date"].toString().toStdString());
-    plan->reminder_time = nl::Time(json["reminder_time"].toString().toStdString());
-
-    return plan;
-
-}
-
-
 void MainWindow::Load() {
+	QJsonObject config_json = LoadJsonFile(config_path_);
+
+	auto plan_path = config_json["plan_path"].toString();
+	auto calendar_path = config_json["calendar_path"].toString();
+
+	QJsonObject plans_json = LoadJsonFile(plan_path);
+	QJsonObject calendar_json = LoadJsonFile(calendar_path);
     std::vector<std::shared_ptr<Plan>> plans;
-    QFile file(plan_json_file_path);
-    if (!file.open(QIODevice::ReadOnly)) {
-        // qWarning() << "Failed to open file:" << plan_json_file_path;
-        return;
-    }
+    for (auto plan_json : plans_json) 
+		plans.push_back(CreatePlan(plan_json.toObject()));
 
-    QByteArray json_data = file.readAll();
-    QJsonDocument doc = QJsonDocument::fromJson(json_data);
 
-    if (doc.isArray()) {
-        QJsonArray jsonArray = doc.array();
-        for (const QJsonValue &value : jsonArray) {
-            if (value.isObject()) {
-                if (auto plan = JsonToPlan(value.toObject())) {
-                    user_->plans.push_back(plan);
-                }
-            }
-        }
-    }
-
+	// @TODO Calendar 的反序列化
 }
 void MainWindow::Save() {
-    QJsonArray jsonArray;
+	QJsonObject config_json = LoadJsonFile(config_path_);
 
-    for (const auto& plan : user_->plans) {
-        auto json = PlanToJson(plan);
-        jsonArray.append(json);
+	auto plan_path = config_json["plan_path"].toString();
+	auto calendar_path = config_json["calendar_path"].toString();
+
+	QJsonObject plans_json;
+    for (auto plan : user_->plans) {
+        auto plan_json = plan->to_json();
     }
+    SaveJsonFile(plans_json, plan_path);
 
-    QFile file(plan_json_file_path);
-    if (!file.open(QIODevice::WriteOnly)) {
-        qWarning() << "Failed to open file for writing:" << plan_json_file_path;
-        return;
-    }
+    // @TODO Calendar 的序列化
 
-    file.write(QJsonDocument(jsonArray).toJson());
 }
 
 MainWindow::MainWindow(QWidget *parent) :

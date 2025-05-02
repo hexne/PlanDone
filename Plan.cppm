@@ -2,6 +2,8 @@ module;
 #include <string>
 #include <iostream>
 #include <chrono>
+#include <QJsonObject>
+#include <QJsonDocument>
 export module Plan;
 
 import Time;
@@ -26,7 +28,7 @@ bool CompareTime(nl::Time time1, nl::Time time2) {
 // 计划参数
 // 开始时间
 // 该计划是否已经失效
-export struct Plan {
+export extern "C++" struct Plan {
     enum class PlanType {
         OneTimePlan, IntervalDaysPlan, FixedDatePlan, DurationPlan,
     } plan_type{};
@@ -49,6 +51,19 @@ export struct Plan {
 
     bool need_reminder(const nl::Time &time) {
         return CompareTime(reminder_time, time);
+    }
+
+    QJsonObject to_json() {
+        QJsonObject json;
+        json["plan_type"] = static_cast<int>(plan_type);
+        json["plan_name"] = QString::fromStdString(plan_name);
+        json["need_delete"] = need_delete;
+        json["value"] = static_cast<int>(value);
+        json["fixed_type"] = static_cast<int>(fixed_type);
+        json["begin_date"] = QString::fromStdString(begin_date.to_date_string());
+        json["reminder_time"] = QString::fromStdString(reminder_time.to_string());
+
+        return json;
     }
 
     virtual bool active(const nl::Time &) = 0;
@@ -152,3 +167,4 @@ public:
 
 
 };
+

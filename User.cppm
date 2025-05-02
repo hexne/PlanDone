@@ -10,12 +10,13 @@ export module User;
 
 import Plan;
 import Time;
+import Calendar;
 
 export class User {
 	bool is_local_;
 	size_t id{};
 	nl::Time reminder_time_;
-	
+	Calendar calendar_;
 public:
 	std::vector<std::shared_ptr<Plan>> plans, done_plans, delete_plans;
 	bool is_local() const {
@@ -32,6 +33,9 @@ public:
 				ret.push_back(plan);
 		}
 		return ret;
+	}
+	auto get_calendar_iteator() {
+		return calendar_.to_iterator();
 	}
 
 };
