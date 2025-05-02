@@ -63,19 +63,3 @@ target_link_libraries(PlanDone PRIVATE
     Modules
     NeLib
 )
-
-# 添加自动部署命令
-get_target_property(Qt6_qmake_location Qt6::qmake IMPORTED_LOCATION)
-get_filename_component(Qt6_bin_dir "${Qt6_qmake_location}" DIRECTORY)
-find_program(WINDEPLOYQT_EXE windeployqt HINTS "${Qt6_bin_dir}")
-
-if(WINDEPLOYQT_EXE AND MSVC)
-    add_custom_command(TARGET PlanDone POST_BUILD
-        COMMAND "${WINDEPLOYQT_EXE}"
-            --$<IF:$<CONFIG:Release>,release,debug>
-            --dir "$<TARGET_FILE_DIR:PlanDone>"
-            --no-compiler-runtime
-            "$<TARGET_FILE:PlanDone>"
-        COMMENT "Auto-deploying Qt dependencies..."
-    )
-endif()
