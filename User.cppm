@@ -16,10 +16,10 @@ export extern "C++" class User {
 	bool is_local_ = true;
 	size_t id{};
 	nl::Time reminder_time_;
-	Calendar calendar_;
 
 public:
 	std::vector<std::shared_ptr<Plan>> current_plans, done_plans, delete_plans;
+    Calendar calendar;
 
 	bool is_local() const {
 		return is_local_;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * @Author : yongheng
+ * @Author : hexne
  * @Data   : 2025/04/05 13:28
 *******************************************************************************/
 
@@ -34,7 +34,6 @@ void MainWindow::Load() {
 	QJsonObject config_json = LoadJsonFile(DefaultConfigPath);
 
 	auto plan_path = config_json["plans"].toString();
-	auto calendar_path = config_json["calendar"].toString();
 
 	QJsonObject plans_json = LoadJsonFile(plan_path);
     auto current_plans = plans_json["current_plans"].toArray();
@@ -42,39 +41,36 @@ void MainWindow::Load() {
         user_->current_plans.push_back(CreatePlan(plan.toObject()));
 
     auto done_plans = plans_json["done_plans"].toArray();
-    for (auto plan : current_plans)
+    for (auto plan : done_plans)
         user_->done_plans.push_back(CreatePlan(plan.toObject()));
 
 
+	auto calendar_path = config_json["calendar"].toString();
+    auto calendar_json = LoadJsonFile(calendar_path);
+    user_->calendar = CreateCalendar(calendar_json);
 
-	// @TODO Calendar 的反序列化
-	// QJsonObject calendar_json = LoadJsonFile(calendar_path);
- //    std::vector<std::shared_ptr<Plan>> plans;
- //    for (auto plan_json : plans_json)
-	// 	plans.push_back(CreatePlan(plan_json.toObject()));
 }
 
 void MainWindow::Save() {
 	QJsonObject config_json = LoadJsonFile(DefaultConfigPath);
 
 	auto plan_path = config_json["plans"].toString();
-	auto calendar_path = config_json["calendar"].toString();
 
     QJsonObject plans_json;
 	QJsonArray current_plans, done_plans;
 
-    for (auto plan : user_->current_plans)
+    for (const auto &plan : user_->current_plans)
         current_plans.append(plan->to_json());
 
-    for (auto plan : user_->done_plans)
+    for (const auto &plan : user_->done_plans)
         done_plans.append(plan->to_json());
 
     plans_json["current_plans"] = current_plans;
     plans_json["done_plans"] = done_plans;
     SaveJsonFile(plans_json, plan_path);
 
-    // @TODO Calendar 的序列化
-
+    auto calendar_path = config_json["calendar"].toString();
+    SaveJsonFile(user_->calendar.to_json(), calendar_path);
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -153,7 +149,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	});
 
 
-    QObject::connect(this, &MainWindow::Reminder, this, [this](std::shared_ptr<Plan> plan) {
+    QObject::connect(this, &MainWindow::Reminder, this, [this](const std::shared_ptr<Plan> &plan) {
 			if (!QSystemTrayIcon::isSystemTrayAvailable()) {
 				return;
             }
