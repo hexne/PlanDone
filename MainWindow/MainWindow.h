@@ -44,7 +44,6 @@ private:
     QTimer listen_timer_, click_timer_;
     QListWidgetItem* cur_click_item_;
     QSystemTrayIcon system_tray_icon_;
-    QString config_path_ = "./config.json";
 };
 
 

@@ -14,7 +14,7 @@ export module Calendar;
 import Time;
 import Plan;
 
-export class Calendar {
+export extern "C++" class Calendar {
     using Date = std::pair<nl::Time, std::vector<std::shared_ptr<Plan>>>;
     using Month = std::vector<Date>;
     using Year = std::vector<Month>;

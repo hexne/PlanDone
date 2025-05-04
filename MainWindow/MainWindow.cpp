@@ -3,58 +3,74 @@
  * @Data   : 2025/04/05 13:28
 *******************************************************************************/
 
-
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
 #include <memory>
-#include <iostream>
-
-#include <QInputDialog>
 #include <QJsonObject>
-#include <QJsonDocument>
-#include <QFile>
-#include <QJsonArray>
 #include <QString>
 #include <QSystemTrayIcon>
-#include <QMenu>
 
 #include "AddWindow/AddWindow.h"
 #include "tools.h"
+#include <QFileInfo>
+#include <QJsonArray>
 
 import Calendar;
 import User;
 import Time;
 import Plan;
 
+QString DefaultConfigPath = "./config.json";
 
-
+void CreateDefaultConfigFile(const QString &path) {
+    QJsonObject json;
+    json["plans"] = "./plans.json";
+    json["calendar"] = "./calendar.json";
+    SaveJsonFile(json, path);
+}
 
 void MainWindow::Load() {
-	QJsonObject config_json = LoadJsonFile(config_path_);
+	QJsonObject config_json = LoadJsonFile(DefaultConfigPath);
 
-	auto plan_path = config_json["plan_path"].toString();
-	auto calendar_path = config_json["calendar_path"].toString();
+	auto plan_path = config_json["plans"].toString();
+	auto calendar_path = config_json["calendar"].toString();
 
 	QJsonObject plans_json = LoadJsonFile(plan_path);
-	QJsonObject calendar_json = LoadJsonFile(calendar_path);
-    std::vector<std::shared_ptr<Plan>> plans;
-    for (auto plan_json : plans_json) 
-		plans.push_back(CreatePlan(plan_json.toObject()));
+    auto current_plans = plans_json["current_plans"].toArray();
+    for (auto plan : current_plans)
+        user_->current_plans.push_back(CreatePlan(plan.toObject()));
+
+    auto done_plans = plans_json["done_plans"].toArray();
+    for (auto plan : current_plans)
+        user_->done_plans.push_back(CreatePlan(plan.toObject()));
+
 
 
 	// @TODO Calendar 的反序列化
+	// QJsonObject calendar_json = LoadJsonFile(calendar_path);
+ //    std::vector<std::shared_ptr<Plan>> plans;
+ //    for (auto plan_json : plans_json)
+	// 	plans.push_back(CreatePlan(plan_json.toObject()));
 }
+
 void MainWindow::Save() {
-	QJsonObject config_json = LoadJsonFile(config_path_);
+	QJsonObject config_json = LoadJsonFile(DefaultConfigPath);
 
-	auto plan_path = config_json["plan_path"].toString();
-	auto calendar_path = config_json["calendar_path"].toString();
+	auto plan_path = config_json["plans"].toString();
+	auto calendar_path = config_json["calendar"].toString();
 
-	QJsonObject plans_json;
-    for (auto plan : user_->plans) {
-        auto plan_json = plan->to_json();
-    }
+    QJsonObject plans_json;
+	QJsonArray current_plans, done_plans;
+
+    for (auto plan : user_->current_plans)
+        current_plans.append(plan->to_json());
+
+    for (auto plan : user_->done_plans)
+        done_plans.append(plan->to_json());
+
+    plans_json["current_plans"] = current_plans;
+    plans_json["done_plans"] = done_plans;
     SaveJsonFile(plans_json, plan_path);
 
     // @TODO Calendar 的序列化
@@ -70,6 +86,10 @@ MainWindow::MainWindow(QWidget *parent) :
     system_tray_icon_.show();
     setWindowIcon(icon);
 
+    QFileInfo file_info(DefaultConfigPath);
+    if (!file_info.exists()) {
+        CreateDefaultConfigFile(DefaultConfigPath);
+    }
 
 
     user_ = std::make_shared<User>();
@@ -112,14 +132,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
             // 如果没有成功添加计划, 点击了取消啊
             if (!add_window->plan) {
-                std::cout << "取消" << std::endl;
                 return;
             }
             int insert_index = ui->plan_list->row(add);
             ui->plan_list->insertItem(insert_index, new QListWidgetItem(add_window->plan->plan_name.c_str()));
             ui->plan_list->item(insert_index)->setCheckState(Qt::Unchecked);
 
-            user_->plans.push_back(add_window->plan);
+            user_->current_plans.push_back(add_window->plan);
 
             Save();
 
@@ -130,7 +149,6 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     });
     QObject::connect(&click_timer_, &QTimer::timeout, [this]() {
-		std::cout << "单击" << std::endl;
         click_timer_.stop();
         
 
@@ -148,14 +166,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->plan_list, &QListWidget::itemDoubleClicked, [this](QListWidgetItem* item) {
         cur_click_item_ = item;
         click_timer_.stop();
-        std::cout << "双击 " << item->text().toStdString() << std::endl;
 	});
 
 
     QObject::connect(this, &MainWindow::Reminder, this, [this](std::shared_ptr<Plan> plan) {
 			if (!QSystemTrayIcon::isSystemTrayAvailable()) {
-                std::cout << "abiailabel is false" << std::endl;
-
 				return;
             }
 
@@ -177,7 +192,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QObject::connect(&listen_timer_, &QTimer::timeout, [this] {
         nl::Time now;
-        for (auto plan : user_->plans) {
+        for (auto plan : user_->current_plans) {
             if (!plan->need_reminder(now)) 
                 continue;
 			emit Reminder(plan);

@@ -14,9 +14,7 @@ class Calendar;
 
 QJsonObject LoadJsonFile(const QString& path);
 void SaveJsonFile(const QJsonObject&, const QString& path);
-
-std::shared_ptr<Plan> CreatePlan(const QJsonObject& json);
-
+void SaveJsonFile(const QJsonDocument& obj, const QString& path);
 //QJsonObject CalendarToJson(Calendar &calendar);
 //Calendar JsonToCalendar(QJsonObject &json);
 //

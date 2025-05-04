@@ -12,13 +12,15 @@ import Plan;
 import Time;
 import Calendar;
 
-export class User {
-	bool is_local_;
+export extern "C++" class User {
+	bool is_local_ = true;
 	size_t id{};
 	nl::Time reminder_time_;
 	Calendar calendar_;
+
 public:
-	std::vector<std::shared_ptr<Plan>> plans, done_plans, delete_plans;
+	std::vector<std::shared_ptr<Plan>> current_plans, done_plans, delete_plans;
+
 	bool is_local() const {
 		return is_local_;
 	}
@@ -28,13 +30,13 @@ public:
 		std::vector<std::shared_ptr<Plan>> ret;
 		auto cur_time = nl::Time::now();
 
-		for (auto plan : plans) {
+		for (auto plan : current_plans) {
 			if (plan->active(cur_time))
 				ret.push_back(plan);
 		}
 		return ret;
 	}
-	auto get_calendar_iteator() {
+	auto get_calendar_iterator() {
 		return calendar_.to_iterator();
 	}
 

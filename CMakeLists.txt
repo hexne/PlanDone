@@ -17,15 +17,14 @@ if(MSVC)
     add_subdirectory("S:/Projects/NeLib" NeLib)
     add_compile_options(/Zc:__cplusplus)
     set(close_console_flag WIN32)
-
-
-
 else ()
+    add_subdirectory("/home/hexne/Projects/NeLib" NeLib)
 
 endif()
 
 find_package(Qt6 COMPONENTS Core Widgets REQUIRED)
 message(STATUS ${Qt6_DIR})
+
 
 add_library(Modules)
 target_sources(Modules
@@ -53,10 +52,12 @@ add_executable(PlanDone
     AddWindow/AddWindow.cpp
     AddWindow/AddWindow.ui
 )
-target_include_directories(PlanDone
-    PUBLIC
+
+target_include_directories(PlanDone PRIVATE
         ${PROJECT_SOURCE_DIR}
 )
+
+
 target_link_libraries(PlanDone PRIVATE
     Qt6::Core
     Qt6::Widgets

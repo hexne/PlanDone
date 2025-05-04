@@ -49,6 +49,7 @@ AddWindow::AddWindow(QWidget *parent)
         else if (index == static_cast<int>(Plan::PlanType::IntervalDaysPlan)) {
 			ui->value->setEnabled(true);
 			ui->value_type->setEnabled(true);
+            ui->value->setValue(1);
 	    }
         // 对于特定时间触发的计划，传入 x (单位) ：10 日，4 周 , 2 月 （每月10 号，每月第四周，每年二月均触发）
         else if (index == static_cast<int>(Plan::PlanType::FixedDatePlan)) {
@@ -88,20 +89,8 @@ AddWindow::AddWindow(QWidget *parent)
             ;
         }
 
-
-        auto tmp_date = ui->begin_date->date();
-		auto begin_date = nl::Time(std::to_string(tmp_date.year()) + "/"
-                                + std::to_string(tmp_date.month()) + "/"
-                                + std::to_string(tmp_date.day())
-							);
-        auto tmp_time = ui->reminder_time->time();
-        auto reminder_time = nl::Time("1/1/1 " + std::to_string(tmp_time.hour()) + ":"
-                                + std::to_string(tmp_time.minute()) + ":" 
-                                + std::to_string(tmp_time.second())
-                            );
-
-        plan->begin_date = begin_date;
-        plan->reminder_time = reminder_time;
+        plan->begin_date = nl::Time::FromDate(ui->begin_date->date().toString("yyyy/MM/dd").toStdString());
+        plan->reminder_time = nl::Time::FromTime(ui->reminder_time->time().toString("HH:mm:ss").toStdString());
 
         plan->plan_name = ui->name->text().toStdString();
 

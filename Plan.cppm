@@ -61,7 +61,7 @@ export extern "C++" struct Plan {
         json["value"] = static_cast<int>(value);
         json["fixed_type"] = static_cast<int>(fixed_type);
         json["begin_date"] = QString::fromStdString(begin_date.to_date_string());
-        json["reminder_time"] = QString::fromStdString(reminder_time.to_string());
+        json["reminder_time"] = QString::fromStdString(reminder_time.to_clock_string());
 
         return json;
     }
@@ -168,3 +168,37 @@ public:
 
 };
 
+export std::shared_ptr<Plan> CreatePlan(const QJsonObject &json) {
+
+    if (json.isEmpty())
+        return {};
+
+    auto type = static_cast<Plan::PlanType>(json["plan_type"].toInt());
+    std::shared_ptr<Plan> plan;
+
+    switch (type) {
+    case Plan::PlanType::OneTimePlan:
+        plan = std::make_shared<OneTimePlan>();
+        break;
+    case Plan::PlanType::IntervalDaysPlan:
+        plan = std::make_shared<IntervalDaysPlan>(json["value"].toInt());
+        break;
+    case Plan::PlanType::FixedDatePlan:
+        plan = std::make_shared<FixedDatePlan>(static_cast<Plan::FixedType>(json["fixed_type"].toInt()), json["fixed_value"].toInt());
+        break;
+    case Plan::PlanType::DurationPlan:
+        plan = std::make_shared<DurationPlan>(json["value"].toInt());
+        break;
+    default:
+        return nullptr;
+    }
+
+    plan->plan_name = json["plan_name"].toString().toStdString();
+    plan->need_delete = json["need_delete"].toBool();
+    plan->value = json["value"].toInt();
+    plan->fixed_type = static_cast<Plan::FixedType>(json["fixed_type"].toInt());
+    plan->begin_date = nl::Time(json["begin_date"].toString().toStdString());
+    plan->reminder_time = nl::Time::FromTime(json["reminder_time"].toString().toStdString());
+
+    return plan;
+}

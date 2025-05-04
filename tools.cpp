@@ -8,8 +8,10 @@
 
 import Plan;
 import Calendar;
+import Time;
 
 
+// 加载配置文件时，如果文件不存在，返回空配置
 QJsonObject LoadJsonFile(const QString& path) {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
@@ -24,10 +26,18 @@ QJsonObject LoadJsonFile(const QString& path) {
     if (doc.isNull()) 
         throw std::runtime_error(std::format("Json parse error at offset : {}" , error.offset));
 
-    if (!doc.isObject()) 
+    if (!(doc.isObject() || doc.isArray()))
         throw std::runtime_error("JSON document is not an object");
 
     return doc.object();
+}
+
+void SaveJsonFile(const QJsonDocument& obj, const QString& path) {
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly))
+        throw std::runtime_error("Could not open file for writing");
+
+    file.write(QJsonDocument(obj).toJson());
 }
 
 void SaveJsonFile(const QJsonObject& obj, const QString& path) {
@@ -36,45 +46,8 @@ void SaveJsonFile(const QJsonObject& obj, const QString& path) {
 		throw std::runtime_error("Could not open file for writing");
 
     QJsonDocument doc(obj);
-    file.write(doc.toJson(QJsonDocument::Indented));
+    SaveJsonFile(doc, path);
 }
-
-
-std::shared_ptr<Plan> CreatePlan(const QJsonObject &json) {
-
-    if (json.isEmpty())
-		return {};
-
-	auto type = static_cast<Plan::PlanType>(json["plan_type"].toInt());
-	std::shared_ptr<Plan> plan;
-
-	switch (type) {
-	case Plan::PlanType::OneTimePlan:
-		plan = std::make_shared<OneTimePlan>();
-		break;
-	case Plan::PlanType::IntervalDaysPlan:
-		plan = std::make_shared<IntervalDaysPlan>(json["value"].toInt());
-		break;
-	case Plan::PlanType::FixedDatePlan:
-		plan = std::make_shared<FixedDatePlan>(static_cast<Plan::FixedType>(json["fixed_type"].toInt()), json["fixed_value"].toInt());
-		break;
-	case Plan::PlanType::DurationPlan:
-		plan = std::make_shared<DurationPlan>(json["value"].toInt());
-		break;
-	default:
-		return nullptr;
-	}
-
-	plan->plan_name = json["plan_name"].toString().toStdString();
-	plan->need_delete = json["need_delete"].toBool();
-	plan->value = json["value"].toInt();
-	plan->fixed_type = static_cast<Plan::FixedType>(json["fixed_type"].toInt());
-	plan->begin_date = nl::Time(json["begin_date"].toString().toStdString());
-	plan->reminder_time = nl::Time(json["reminder_time"].toString().toStdString());
-
-	return plan;
-}
-
 
 
 
@@ -89,7 +62,5 @@ QJsonObject CalendarToJson(Calendar &calendar) {
     }
     return json;
 }
-
-// Calendar JsonToCalendar(QJsonObject& json);
 
 
