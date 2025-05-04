@@ -8,20 +8,6 @@ export module Plan;
 
 import Time;
 
-
-bool CompareDate(nl::Time time1, nl::Time time2) {
-    return time1.get_year() == time2.get_year()
-        && time1.get_month() == time2.get_month()
-        && time1.get_day() == time2.get_day();
-}
-bool CompareTime(nl::Time time1, nl::Time time2) {
-    return time1.get_hour() == time2.get_hour()
-        && time1.get_minute() == time2.get_minute()
-        && time1.get_second() == time2.get_second();
-}
-
-
-
 // 对于一个计划序列化文件
 // 计划类型
 // 计划名称
@@ -49,11 +35,11 @@ export extern "C++" struct Plan {
             && plan_type == other.plan_type;
     }
 
-    bool need_reminder(const nl::Time &time) {
-        return CompareTime(reminder_time, time);
+    bool need_reminder(const nl::Time &time) const {
+        return reminder_time.compare_time(time);
     }
 
-    QJsonObject to_json() {
+    QJsonObject to_json() const {
         QJsonObject json;
         json["plan_type"] = static_cast<int>(plan_type);
         json["plan_name"] = QString::fromStdString(plan_name);
@@ -81,7 +67,7 @@ public:
     }
 
     bool active(const nl::Time & date) {
-        if (CompareDate(date, begin_date))
+        if (begin_date.compare_date(date))
             return true;
         need_delete = true;
         return false;
@@ -101,7 +87,7 @@ public:
 
     bool active(const nl::Time & date) {
         auto day = (date - begin_date).count<std::chrono::milliseconds>();
-        if (CompareDate(date, begin_date))
+        if (begin_date.compare_date(date))
             return true;
 
         // 没有到达触发时间

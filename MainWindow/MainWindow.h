@@ -44,6 +44,9 @@ private:
     QTimer listen_timer_, click_timer_;
     QListWidgetItem* cur_click_item_;
     QSystemTrayIcon system_tray_icon_;
+
+
+    void beautify_the_ui();
 };
 
 

@@ -86,36 +86,20 @@ MainWindow::MainWindow(QWidget *parent) :
     system_tray_icon_.show();
     setWindowIcon(icon);
 
+    beautify_the_ui();
+
     QFileInfo file_info(DefaultConfigPath);
     if (!file_info.exists()) {
         CreateDefaultConfigFile(DefaultConfigPath);
     }
 
-
     user_ = std::make_shared<User>();
-
-    // 设置整个列表的样式
-    ui->plan_list->setStyleSheet(
-    "QListWidget::item {"
-    "    padding-left: 20px;"
-    "    padding-right: 20px;"
-    "    background: white;"          // 默认背景
-    "    color: black;"              // 默认文字
-    "    font-size: 20pt;"
-    "    height: 30px;"
-    "}"
-
-    "QListWidget::item:hover {"
-    "    background: #e6f2ff;"       // 悬停背景
-    "}"
-    );
 
     Load();
 
     // 加载之前的计划
     // 之前的计划可以使用json保存
     for (const auto& plan : user_->get_cur_date_plans()) {
-
         auto item = new QListWidgetItem(plan->plan_name.data(), ui->plan_list);
         item->setCheckState(Qt::Unchecked);
     }
@@ -200,7 +184,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	});
 
     listen_thread_.start();
-
 }
 
 
@@ -209,4 +192,22 @@ MainWindow::~MainWindow() {
     listen_thread_.quit();
     listen_thread_.wait();
     delete ui;
+}
+
+void MainWindow::beautify_the_ui() {
+
+    ui->plan_list->setStyleSheet(
+    "QListWidget::item {"
+    "    padding-left: 20px;"
+    "    padding-right: 20px;"
+    "    background: white;"          // 默认背景
+    "    color: black;"              // 默认文字
+    "    font-size: 20pt;"
+    "    height: 30px;"
+    "}"
+
+    "QListWidget::item:hover {"
+    "    background: #e6f2ff;"       // 悬停背景
+    "}"
+    );
 }
