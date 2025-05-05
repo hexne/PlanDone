@@ -15,9 +15,6 @@
 
 #include "tools.h"
 
-class User;
-class Plan;
-
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE

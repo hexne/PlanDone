@@ -70,7 +70,7 @@ public:
         return operator[](date.get_year(), date.get_month(), date.get_day());
     }
 	Date& operator[](size_t year, size_t month, size_t day) {
-		return calendar_[year - 2025][month][day];
+		return calendar_[year - 2025][month-1][day-1];
 	}
 
 };

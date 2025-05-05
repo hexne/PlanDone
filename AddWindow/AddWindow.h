@@ -9,7 +9,7 @@ namespace Ui {
 class AddWindow;
 }
 
-class Plan;
+struct Plan;
 
 class AddWindow : public QDialog
 {

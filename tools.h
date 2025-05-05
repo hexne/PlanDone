@@ -7,7 +7,7 @@
 #include <QJsonObject>
 
 
-class Plan;
+struct Plan;
 class User;
 class Calendar;
 
@@ -15,8 +15,3 @@ class Calendar;
 QJsonObject LoadJsonFile(const QString& path);
 void SaveJsonFile(const QJsonObject&, const QString& path);
 void SaveJsonFile(const QJsonDocument& obj, const QString& path);
-//QJsonObject CalendarToJson(Calendar &calendar);
-//Calendar JsonToCalendar(QJsonObject &json);
-//
-//std::shared_ptr<User> LoadConfig(const QString& path);
-//void SaveConfig(const std::shared_ptr<User> &user);

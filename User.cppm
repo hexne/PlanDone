@@ -18,7 +18,10 @@ export extern "C++" class User {
 	nl::Time reminder_time_;
 
 public:
-	std::vector<std::shared_ptr<Plan>> current_plans, done_plans, delete_plans;
+	// 计划类型：
+	// current_plans : 当前没有结束的计划
+	// finish_plans :    已经结束的计划
+	std::vector<std::shared_ptr<Plan>> current_plans, finish_plans;
     Calendar calendar;
 
 	bool is_local() const {
@@ -37,7 +40,7 @@ public:
 		return ret;
 	}
 	auto get_calendar_iterator() {
-		return calendar_.to_iterator();
+		return calendar.to_iterator();
 	}
 
 };

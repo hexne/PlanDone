@@ -9,12 +9,14 @@
 #include <memory>
 #include <QJsonObject>
 #include <QString>
+#include <vector>
+#include <ranges>
 #include <QSystemTrayIcon>
+#include <QFileInfo>
+#include <QJsonArray>
 
 #include "AddWindow/AddWindow.h"
 #include "tools.h"
-#include <QFileInfo>
-#include <QJsonArray>
 
 import Calendar;
 import User;
@@ -133,17 +135,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(&click_timer_, &QTimer::timeout, [this]() {
         click_timer_.stop();
 
-        user_->done_plans.push()
+        auto plan_name = cur_click_item_->text().toStdString();
 
+        // 该任务今天已经完成
+        auto done_plan = std::ranges::find_if(user_->current_plans, [&plan_name] (auto plan){
+            return plan->plan_name == plan_name;
+		});
 
-
-		if (cur_click_item_->checkState() == Qt::Checked) {
-			cur_click_item_->setCheckState(Qt::Unchecked);
-		}
-		else {
-			cur_click_item_->setCheckState(Qt::Checked);
-		}
-
+        // @TODO
+        user_->finish_plans.push_back(*done_plan);
+        user_->current_plans.erase(done_plan);
+        user_->calendar[nl::Time::now()].second.push_back(plan_name);
+        Save();
 
 	});
 

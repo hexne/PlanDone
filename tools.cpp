@@ -48,19 +48,3 @@ void SaveJsonFile(const QJsonObject& obj, const QString& path) {
     QJsonDocument doc(obj);
     SaveJsonFile(doc, path);
 }
-
-
-
-QJsonObject CalendarToJson(Calendar &calendar) {
-    QJsonObject json;
-    for (auto [date, plans] : calendar.to_iterator()) {
-        QJsonArray plan_array;
-        for (auto plan : plans) {
-            plan_array.append(plan->plan_name.c_str());
-        }
-        json[date.to_date_string().c_str()] = plan_array;
-    }
-    return json;
-}
-
-

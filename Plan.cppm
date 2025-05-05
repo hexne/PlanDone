@@ -31,8 +31,8 @@ export extern "C++" struct Plan {
     nl::Time begin_date, reminder_time;
 
     bool operator == (const Plan &other) const {
-        return plan_name == other.plan_name 
-            && plan_type == other.plan_type;
+        return plan_name == other.plan_name;
+        //    && plan_type == other.plan_type;
     }
 
     bool need_reminder(const nl::Time &time) const {
