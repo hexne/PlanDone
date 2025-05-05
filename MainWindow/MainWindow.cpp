@@ -128,9 +128,14 @@ MainWindow::MainWindow(QWidget *parent) :
             click_timer_.start(200);
         }
     });
+
+    // 单击任务，暂时认为是任务被完成
     QObject::connect(&click_timer_, &QTimer::timeout, [this]() {
         click_timer_.stop();
-        
+
+        user_->done_plans.push()
+
+
 
 		if (cur_click_item_->checkState() == Qt::Checked) {
 			cur_click_item_->setCheckState(Qt::Unchecked);
