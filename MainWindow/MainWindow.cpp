@@ -42,9 +42,9 @@ void MainWindow::Load() {
     for (auto plan : current_plans)
         user_->current_plans.push_back(CreatePlan(plan.toObject()));
 
-    auto done_plans = plans_json["done_plans"].toArray();
+    auto done_plans = plans_json["finish_plans"].toArray();
     for (auto plan : done_plans)
-        user_->done_plans.push_back(CreatePlan(plan.toObject()));
+        user_->finish_plans.push_back(CreatePlan(plan.toObject()));
 
 
 	auto calendar_path = config_json["calendar"].toString();
@@ -61,14 +61,16 @@ void MainWindow::Save() {
     QJsonObject plans_json;
 	QJsonArray current_plans, done_plans;
 
+    // 当前存在的任务
     for (const auto &plan : user_->current_plans)
         current_plans.append(plan->to_json());
 
-    for (const auto &plan : user_->done_plans)
+    // 当前已经结束的任务
+    for (const auto &plan : user_->finish_plans)
         done_plans.append(plan->to_json());
 
     plans_json["current_plans"] = current_plans;
-    plans_json["done_plans"] = done_plans;
+    plans_json["finish_plans"] = done_plans;
     SaveJsonFile(plans_json, plan_path);
 
     auto calendar_path = config_json["calendar"].toString();
@@ -142,9 +144,10 @@ MainWindow::MainWindow(QWidget *parent) :
             return plan->plan_name == plan_name;
 		});
 
-        // @TODO
-        user_->finish_plans.push_back(*done_plan);
-        user_->current_plans.erase(done_plan);
+        delete ui->plan_list->takeItem(ui->plan_list->row(cur_click_item_));
+        cur_click_item_ = nullptr;
+
+        // @TODO 该计划被完成
         user_->calendar[nl::Time::now()].second.push_back(plan_name);
         Save();
 

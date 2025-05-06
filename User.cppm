@@ -20,7 +20,7 @@ export extern "C++" class User {
 public:
 	// 计划类型：
 	// current_plans : 当前没有结束的计划
-	// finish_plans :    已经结束的计划
+	// finish_plans  :    已经结束的计划
 	std::vector<std::shared_ptr<Plan>> current_plans, finish_plans;
     Calendar calendar;
 
@@ -34,11 +34,13 @@ public:
 		auto cur_time = nl::Time::now();
 
 		for (auto plan : current_plans) {
-			if (plan->active(cur_time))
+			if (plan->active(cur_time) && !calendar.find_cur_done_plan(plan->plan_name))
 				ret.push_back(plan);
 		}
 		return ret;
 	}
+
+
 	auto get_calendar_iterator() {
 		return calendar.to_iterator();
 	}

@@ -19,8 +19,9 @@ export extern "C++" struct Plan {
         OneTimePlan, IntervalDaysPlan, FixedDatePlan, DurationPlan,
     } plan_type{};
     std::string plan_name{};
-    bool need_delete{};
 
+    // 标记该计划已经结束
+    bool is_finish_{};
 
     size_t value{};
     enum class FixedType {
@@ -28,7 +29,7 @@ export extern "C++" struct Plan {
     } fixed_type{};
 
 
-    nl::Time begin_date, reminder_time;
+    nl::Time begin_date, end_date, reminder_time;
 
     bool operator == (const Plan &other) const {
         return plan_name == other.plan_name;
@@ -43,13 +44,18 @@ export extern "C++" struct Plan {
         QJsonObject json;
         json["plan_type"] = static_cast<int>(plan_type);
         json["plan_name"] = QString::fromStdString(plan_name);
-        json["need_delete"] = need_delete;
+        json["need_delete"] = is_finish_;
         json["value"] = static_cast<int>(value);
         json["fixed_type"] = static_cast<int>(fixed_type);
         json["begin_date"] = QString::fromStdString(begin_date.to_date_string());
+        json["end_date"] = QString::fromStdString(begin_date.to_date_string());
         json["reminder_time"] = QString::fromStdString(reminder_time.to_clock_string());
 
         return json;
+    }
+
+    bool is_finish() const {
+        return is_finish_;
     }
 
     virtual bool active(const nl::Time &) = 0;
@@ -69,7 +75,7 @@ public:
     bool active(const nl::Time & date) {
         if (begin_date.compare_date(date))
             return true;
-        need_delete = true;
+        is_finish_ = true;
         return false;
     }
 
@@ -147,7 +153,7 @@ public:
         auto duration_day = (date - begin_date).count<std::chrono::days>();
         if (duration_day < value)
             return true;
-        need_delete = true;
+        is_finish_ = true;
         return false;
     }
 
@@ -180,10 +186,11 @@ export std::shared_ptr<Plan> CreatePlan(const QJsonObject &json) {
     }
 
     plan->plan_name = json["plan_name"].toString().toStdString();
-    plan->need_delete = json["need_delete"].toBool();
+    plan->is_finish_ = json["need_delete"].toBool();
     plan->value = json["value"].toInt();
     plan->fixed_type = static_cast<Plan::FixedType>(json["fixed_type"].toInt());
     plan->begin_date = nl::Time(json["begin_date"].toString().toStdString());
+    plan->begin_date = nl::Time(json["end_date"].toString().toStdString());
     plan->reminder_time = nl::Time::FromTime(json["reminder_time"].toString().toStdString());
 
     return plan;

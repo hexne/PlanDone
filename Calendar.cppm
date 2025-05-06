@@ -45,6 +45,14 @@ public:
         }
     }
 
+    bool find_cur_done_plan(std::string plan_name) {
+        auto [date, plans] = operator [](nl::Time::now());
+
+        const auto it = std::ranges::find_if(plans,[plan_name](auto cur_plan_name) {
+            return cur_plan_name == plan_name;
+        });
+        return it != plans.end();
+    }
 
     auto to_iterator() {
         return calendar_ | std::ranges::views::join | std::ranges::views::join;
