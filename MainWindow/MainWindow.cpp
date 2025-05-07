@@ -14,6 +14,9 @@
 #include <QSystemTrayIcon>
 #include <QFileInfo>
 #include <QJsonArray>
+#include <QPainter>
+#include <QStyledItemDelegate>
+#include <random>
 
 #include "AddWindow/AddWindow.h"
 #include "tools.h"
@@ -77,6 +80,12 @@ void MainWindow::Save() {
     SaveJsonFile(user_->calendar.to_json(), calendar_path);
 }
 
+
+void MainWindow::update_height() {
+    setMinimumHeight(height_);
+    setMaximumHeight(height_);
+}
+
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
@@ -102,9 +111,14 @@ MainWindow::MainWindow(QWidget *parent) :
     for (const auto& plan : user_->get_cur_date_plans()) {
         auto item = new QListWidgetItem(plan->plan_name.data(), ui->plan_list);
         item->setCheckState(Qt::Unchecked);
+        height_ += ui->plan_list->height();
+        update_height();
     }
+
     static auto add = new QListWidgetItem("[+]", ui->plan_list);
     add->setTextAlignment(Qt::AlignCenter);
+    height_ += ui->plan_list->height();
+    update_height();
 
     // 左键点击
     connect(ui->plan_list, &QListWidget::itemClicked, [this](QListWidgetItem *item) {
@@ -119,8 +133,10 @@ MainWindow::MainWindow(QWidget *parent) :
                 return;
             }
             int insert_index = ui->plan_list->row(add);
-            ui->plan_list->insertItem(insert_index, new QListWidgetItem(add_window->plan->plan_name.c_str()));
+            ui->plan_list->insertItem(insert_index, new QListWidgetItem(add_window->plan->plan_name.data()));
             ui->plan_list->item(insert_index)->setCheckState(Qt::Unchecked);
+            height_ += ui->plan_list->height();
+            update_height();
 
             user_->current_plans.push_back(add_window->plan);
 
@@ -201,20 +217,97 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
+
+std::tuple<QColor, QColor> GetRandomColor() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<> dis(150, 255);
+
+    return {
+        QColor(dis(gen), dis(gen), dis(gen)),
+        QColor(dis(gen), dis(gen), dis(gen))
+    };
+}
+
+class RainbowDelegate : public QStyledItemDelegate {
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+
+    void paint(QPainter* painter,
+               const QStyleOptionViewItem& option,
+               const QModelIndex& index) const override
+    {
+        QStyleOptionViewItem opt = option;
+        initStyleOption(&opt, index);
+        const QString originalText = opt.text;
+        opt.text.clear();
+
+        // 强制禁用状态颜色，确保基类不会使用默认文本色
+        if (opt.state & QStyle::State_Selected)
+            opt.palette.setColor(QPalette::Text, Qt::transparent);
+        if (opt.state & QStyle::State_HasFocus)
+            opt.palette.setColor(QPalette::Text, Qt::transparent);
+
+        QStyledItemDelegate::paint(painter, opt, index);
+
+        painter->save();
+
+        // 获取原始文本区域（已包含样式表的内边距）
+        const QRect textRect = opt.widget->style()->subElementRect(
+            QStyle::SE_ItemViewItemText, &opt, opt.widget
+        );
+
+        // 创建渐变（调整为从文本区域左侧开始）
+        QLinearGradient gradient(
+            textRect.left(), textRect.center().y(),
+            textRect.right(), textRect.center().y()
+        );
+        auto [color1, color2] = GetRandomColor();
+        auto [color3, color4] = GetRandomColor();
+        auto [color5, color6] = GetRandomColor();
+
+        gradient.setColorAt(0.0, color1);
+        gradient.setColorAt(0.2, color2);
+        gradient.setColorAt(0.4, color3);
+        gradient.setColorAt(0.6, color4);
+        gradient.setColorAt(0.8, color5);
+        gradient.setColorAt(1.0, color6);
+
+        // 设置绘制参数
+        painter->setFont(opt.font);
+        painter->setPen(QPen(gradient, 1));
+
+        painter->drawText(
+            textRect.adjusted(3, 0, 0, 0),
+            opt.displayAlignment | Qt::AlignVCenter,
+            originalText
+        );
+
+        painter->restore();
+    }
+};
+
+
 void MainWindow::beautify_the_ui() {
 
-    ui->plan_list->setStyleSheet(
-    "QListWidget::item {"
-    "    padding-left: 20px;"
-    "    padding-right: 20px;"
-    "    background: white;"          // 默认背景
-    "    color: black;"              // 默认文字
-    "    font-size: 20pt;"
-    "    height: 30px;"
-    "}"
+    setAttribute(Qt::WA_TranslucentBackground, true);
+    setWindowFlags(Qt::WindowStaysOnBottomHint | Qt::FramelessWindowHint);
 
-    "QListWidget::item:hover {"
-    "    background: #e6f2ff;"       // 悬停背景
-    "}"
+    ui->plan_list->setItemDelegate(new RainbowDelegate(ui->plan_list));
+
+    ui->plan_list->setStyleSheet(
+        "QListWidget {"
+        "    background: transparent;"
+        "    border: none;"
+        "}"
+        "QListWidget::item {"
+        "    padding-left: 10px;"  // 减小左侧内边距
+        "    padding-right: 10px;"
+        "    background: transparent;"
+        "    font-size: 20pt;"
+        "    height: 30px;"
+        "}"
     );
+
+
 }

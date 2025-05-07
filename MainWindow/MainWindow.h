@@ -34,7 +34,10 @@ public:
 
     void Save();
 
+    void update_height();
+
 private:
+    size_t height_{};
     Ui::MainWindow *ui;
     std::shared_ptr<User> user_;
     QThread listen_thread_;
