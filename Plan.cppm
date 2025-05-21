@@ -29,14 +29,14 @@ export extern "C++" struct Plan {
     } fixed_type{};
 
 
-    nl::Time begin_date, end_date, reminder_time;
+    Time begin_date, end_date, reminder_time;
 
     bool operator == (const Plan &other) const {
         return plan_name == other.plan_name;
         //    && plan_type == other.plan_type;
     }
 
-    bool need_reminder(const nl::Time &time) const {
+    bool need_reminder(const Time &time) const {
         return reminder_time.compare_time(time);
     }
 
@@ -58,7 +58,7 @@ export extern "C++" struct Plan {
         return is_finish_;
     }
 
-    virtual bool active(const nl::Time &) = 0;
+    virtual bool active(const Time &) = 0;
     virtual ~Plan() = default;
 };
 
@@ -72,7 +72,7 @@ public:
         plan_type = PlanType::OneTimePlan;
     }
 
-    bool active(const nl::Time & date) {
+    bool active(const Time & date) {
         if (begin_date.compare_date(date))
             return true;
         is_finish_ = true;
@@ -91,7 +91,7 @@ public:
         value = interval;
     }
 
-    bool active(const nl::Time & date) {
+    bool active(const Time & date) {
         auto day = (date - begin_date).count<std::chrono::milliseconds>();
         if (begin_date.compare_date(date))
             return true;
@@ -118,7 +118,7 @@ public:
         value = val;
     }
 
-    bool active(const nl::Time & date) {
+    bool active(const Time & date) {
         bool flag{};
         switch (fixed_type) {
             case FixedType::Year:
@@ -149,7 +149,7 @@ public:
         value = duration;
     }
 
-    bool active(const nl::Time & date) {
+    bool active(const Time & date) {
         auto duration_day = (date - begin_date).count<std::chrono::days>();
         if (duration_day < value)
             return true;
@@ -189,9 +189,9 @@ export std::shared_ptr<Plan> CreatePlan(const QJsonObject &json) {
     plan->is_finish_ = json["need_delete"].toBool();
     plan->value = json["value"].toInt();
     plan->fixed_type = static_cast<Plan::FixedType>(json["fixed_type"].toInt());
-    plan->begin_date = nl::Time(json["begin_date"].toString().toStdString());
-    plan->begin_date = nl::Time(json["end_date"].toString().toStdString());
-    plan->reminder_time = nl::Time::FromTime(json["reminder_time"].toString().toStdString());
+    plan->begin_date = Time(json["begin_date"].toString().toStdString());
+    plan->begin_date = Time(json["end_date"].toString().toStdString());
+    plan->reminder_time = Time::FromTime(json["reminder_time"].toString().toStdString());
 
     return plan;
 }

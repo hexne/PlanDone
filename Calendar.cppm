@@ -18,14 +18,14 @@ import Plan;
 export extern "C++" class Calendar {
     // using Date = std::pair<nl::Time, std::vector<std::shared_ptr<Plan>>>;
     // @TODO, 为了快速实现，此处仅在日历中保存计划名称
-    using Date = std::pair<nl::Time, std::vector<std::string>>;
+    using Date = std::pair<Time, std::vector<std::string>>;
     using Month = std::vector<Date>;
     using Year = std::vector<Month>;
     std::vector<Year> calendar_{};
 public:
     Calendar() {
-        nl::Time end_date;
-        if (end_date < nl::Time::FromDate(2025, 1, 1))
+        Time end_date;
+        if (end_date < Time::FromDate(2025, 1, 1))
             return;
 
         for (int year = 2025; year <= end_date.get_year(); year++) {
@@ -34,10 +34,10 @@ public:
                 Month push_month;
                 if (year == end_date.get_year() && month > end_date.get_month())
                     break;
-                for (int day = 1; day <= nl::Time::count_month_day(year, month); day++) {
+                for (int day = 1; day <= Time::count_month_day(year, month); day++) {
                     if (year == end_date.get_year() && month == end_date.get_month() && day > end_date.get_day())
                         break;
-                    push_month.push_back({ nl::Time::FromDate(year, month, day), {} });
+                    push_month.push_back({ Time::FromDate(year, month, day), {} });
                 }
                 push_year.push_back(push_month);
             }
@@ -46,7 +46,7 @@ public:
     }
 
     bool find_cur_done_plan(std::string plan_name) {
-        auto [date, plans] = operator [](nl::Time::now());
+        auto [date, plans] = operator [](Time::now());
 
         const auto it = std::ranges::find_if(plans,[plan_name](auto cur_plan_name) {
             return cur_plan_name == plan_name;
@@ -58,7 +58,7 @@ public:
         return calendar_ | std::ranges::views::join | std::ranges::views::join;
     }
 
-    void operator[] (const nl::Time& date, const std::vector<std::string>& plans) {
+    void operator[] (const Time& date, const std::vector<std::string>& plans) {
         operator[](date).second = plans;
     }
 
@@ -74,7 +74,7 @@ public:
         return json;
     }
 
-    Date& operator[](const nl::Time& date) {
+    Date& operator[](const Time& date) {
         return operator[](date.get_year(), date.get_month(), date.get_day());
     }
 	Date& operator[](size_t year, size_t month, size_t day) {
@@ -88,7 +88,7 @@ export Calendar CreateCalendar(QJsonObject &json) {
     for (auto it = json.begin(); it != json.end(); ++it) {
         auto date = it.key();
         auto plans_json = it.value().toArray();
-        nl::Time cur_time = nl::Time::FromDate(date.toStdString());
+        auto cur_time = Time::FromDate(date.toStdString());
         std::vector<std::string> plans;
 
         for (const auto &plan_json : plans_json)

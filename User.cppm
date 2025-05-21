@@ -15,7 +15,7 @@ import Calendar;
 export extern "C++" class User {
 	bool is_local_ = true;
 	size_t id{};
-	nl::Time reminder_time_;
+	Time reminder_time_;
 
 public:
 	// 计划类型：
@@ -31,7 +31,7 @@ public:
 	// 只获取今天有效的计划
 	std::vector<std::shared_ptr<Plan>> get_cur_date_plans() {
 		std::vector<std::shared_ptr<Plan>> ret;
-		auto cur_time = nl::Time::now();
+		auto cur_time = Time::now();
 
 		for (auto plan : current_plans) {
 			if (plan->active(cur_time) && !calendar.find_cur_done_plan(plan->plan_name))

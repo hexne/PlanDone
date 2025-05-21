@@ -164,7 +164,7 @@ MainWindow::MainWindow(QWidget *parent) :
         cur_click_item_ = nullptr;
 
         // @TODO 该计划被完成
-        user_->calendar[nl::Time::now()].second.push_back(plan_name);
+        user_->calendar[Time::now()].second.push_back(plan_name);
         Save();
 
 	});
@@ -198,7 +198,7 @@ MainWindow::MainWindow(QWidget *parent) :
     );
 
     QObject::connect(&listen_timer_, &QTimer::timeout, [this] {
-        nl::Time now;
+        Time now;
         for (auto plan : user_->current_plans) {
             if (!plan->need_reminder(now)) 
                 continue;

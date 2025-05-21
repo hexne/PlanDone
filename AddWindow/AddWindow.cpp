@@ -89,8 +89,8 @@ AddWindow::AddWindow(QWidget *parent)
             ;
         }
 
-        plan->begin_date = nl::Time::FromDate(ui->begin_date->date().toString("yyyy/MM/dd").toStdString());
-        plan->reminder_time = nl::Time::FromTime(ui->reminder_time->time().toString("HH:mm:ss").toStdString());
+        plan->begin_date = Time::FromDate(ui->begin_date->date().toString("yyyy/MM/dd").toStdString());
+        plan->reminder_time = Time::FromTime(ui->reminder_time->time().toString("HH:mm:ss").toStdString());
 
         plan->plan_name = ui->name->text().toStdString();
 
